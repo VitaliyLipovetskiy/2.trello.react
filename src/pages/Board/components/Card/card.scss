@@ -1,0 +1,15 @@
+@import './../../../../index';
+
+.board-card {
+  margin-top: 3px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid $secondary-background;
+  background-color: $secondary-background;
+  color: $primary-color;
+}
+
+.board-card:hover {
+  cursor: pointer;
+  border: 1px solid $primary-color;
+}
