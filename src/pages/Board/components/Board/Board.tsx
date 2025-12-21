@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { List } from '../List/List';
+import {Link, useParams} from 'react-router-dom';
+import { List } from '../index';
 import { ICard } from '../../../../common/interfaces';
 import './board.scss'
 
@@ -11,19 +12,24 @@ type ListBoardType = {
 
 export const Board = () => {
     const [title, setTitle] = useState('Моя тестова дошка');
-    const [lists, setLists] = useState<ListBoardType[]>(listsDefault)
+    const [lists, setLists] = useState<ListBoardType[]>(listsDefault);
+    const { id } = useParams();
 
     return (
-        <>
+        <div className={'board'}>
             <header>
                 <div className={'board-header'}>
-                    <button>{'<-Додому'}</button>
-                    <h1>{title}</h1>
+                    <Link to={'/'}>{'<-Додому'}</Link>
+                    <h1>{title} {id}</h1>
                 </div>
             </header>
-            <div className={'board-lists container'}>
+            <div className={'container'}>
                 {lists.map((list) =>
-                    <List key={list.id} title={list.title} cards={list.cards}/>
+                    <List
+                        key={list.id}
+                        title={list.title}
+                        cards={list.cards}
+                    />
                 )}
                 <div className={'board-list'}>
                     <div className={'board-list-add'}>
@@ -31,7 +37,7 @@ export const Board = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 

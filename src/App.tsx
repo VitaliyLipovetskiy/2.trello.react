@@ -1,13 +1,13 @@
 import React from 'react';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
-import { Board } from './pages/Board/components';
+import { Board, Home } from './pages';
 
 function App() {
     return (
         <Routes>
-            <Route path='/' element={<div>Hello</div>}/>
-            <Route path='/board' element={<Board/>}/>
+            <Route path='/' element={<Home/>}/>
+            <Route path='/board/:id' element={<Board />}/>
         </Routes>
     );
 }

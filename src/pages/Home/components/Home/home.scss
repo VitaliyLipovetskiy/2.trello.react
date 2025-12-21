@@ -1,0 +1,31 @@
+.home {
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+        text-align: center;
+    }
+
+    .container {
+        display: grid;
+        justify-self: center;
+        grid-template-columns: 180px 180px 180px 180px;
+        grid-template-rows: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        justify-content: center;
+
+        .board-add {
+            width: 160px;
+            height: 130px;
+            padding: 10px;
+            border-radius: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .home-board {
+            height: 130px;
+        }
+
+    }
+}
+

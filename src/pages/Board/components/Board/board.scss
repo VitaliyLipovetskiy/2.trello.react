@@ -1,51 +1,57 @@
 @import './../../../../index';
 
-.board-header {
-  display: flex;
-  justify-content: space-around;
-
-  button {
-    position: absolute;
-    height: 50px;
-    width: 150px;
-    left: 0;
-    margin: 5px;
-    align-self: center;
-  }
-}
-
-.container {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: scroll;
-}
-
-.container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.container::-webkit-scrollbar-thumb {
-  background-color: gray;
-  border-radius: 10px;
-}
-
-.container::-webkit-scrollbar-track {
-  background-color: white;
-  border-radius: 10px;
-}
-
-.board-lists {
-  display: flex;
-  align-items: baseline;
-  width: 100vw;
-}
-
-.board-list-add {
+.board {
   display: flex;
   flex-direction: column;
-  min-width: 200px;
-  background-color: $primary-background;
-  margin-top: 3px;
 
-  @include button;
+  .board-header {
+    display: flex;
+    justify-content: space-around;
+
+    a {
+      position: absolute;
+      height: 50px;
+      width: 150px;
+      left: 0;
+      margin: 5px;
+      align-self: center;
+      align-content: center;
+      text-align: center;
+      background-color: gray;
+      border-radius: 5px;
+      color: black;
+    }
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    align-items: baseline;
+    width: 100vw;
+
+    .board-list-add {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+      background-color: $primary-background;
+      margin-top: 3px;
+
+      @include button;
+    }
+  }
+
+  .container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .container::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-radius: 10px;
+  }
+
+  .container::-webkit-scrollbar-track {
+    background-color: white;
+    border-radius: 10px;
+  }
 }

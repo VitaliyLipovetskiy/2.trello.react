@@ -16,6 +16,11 @@ $primary-color: white;
 $primary-background: #222;
 $secondary-background: #525dce;
 
+a {
+  text-decoration: none;
+  display: block;
+}
+
 @mixin button {
 
   button {
