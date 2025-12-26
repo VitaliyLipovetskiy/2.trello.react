@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Board} from '../index';
+import {Link} from 'react-router-dom';
+import api from '../../../../api/request';
 import './home.scss';
-import {Link} from "react-router-dom";
 
 type BoardType = {
     id: number,
@@ -12,7 +13,17 @@ type BoardType = {
 }
 
 export const Home = () => {
-    const [boards, setBoards] = useState<BoardType[]>(listsDefault)
+    const [boards, setBoards] = useState<BoardType[]>([]);
+
+    const fetchData = async () => {
+        const { boards } = await api.get<any, { boards: BoardType[] }, any>('board')
+        setBoards(boards)
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [])
+
 
     return (
         <div className={'home'}>
@@ -24,8 +35,7 @@ export const Home = () => {
                         to={'/board/' + board.id}
                     >
                         <Board
-                            title={board.title}
-                            background={board.custom.background}
+                            id={board.id}
                         />
                     </Link>
                 )}
@@ -36,10 +46,3 @@ export const Home = () => {
         </div>
     )
 }
-
-const listsDefault: BoardType[] = [
-    {id: 1, title: "покупки", custom: {background: "red"}},
-    {id: 2, title: "підготовка до весілля", custom: {background: "green"}},
-    {id: 3, title: "розробка інтернет-магазину", custom: {background: "blue"}},
-    {id: 4, title: "курс по просуванню у соцмережах", custom: {background: "grey"}}
-]
