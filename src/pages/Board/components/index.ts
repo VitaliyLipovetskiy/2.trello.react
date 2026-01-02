@@ -1,3 +1,5 @@
-export { List } from '../components/List/List';
-export { Board } from '../components/Board/Board';
-export { Card } from '../components/Card/Card';
+export { List } from './List/List';
+export { Board } from './Board/Board';
+export { Card } from './Card/Card';
+export { CreateBoard } from './CreateBoard/CreateBoard';
+export { BoardTitle } from './BoardTitle/BoardTitle';

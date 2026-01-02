@@ -15,11 +15,14 @@
         justify-content: center;
 
         .board-add {
-            width: 160px;
-            height: 130px;
+            width: 180px;
+            height: 150px;
             padding: 10px;
             border-radius: 20px;
             background-color: #f0f0f0;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .home-board {

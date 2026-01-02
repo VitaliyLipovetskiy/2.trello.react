@@ -1,0 +1,33 @@
+.board-title {
+  display: flex;
+  flex-direction: column;
+  top: 5px;
+
+  input {
+    padding: 10px;
+  }
+
+  .error p {
+    margin: 0;
+    color: red;
+    font-size: 12px;
+  }
+}
+
+.board-title-readonly input {
+  display: block;
+  font-size: 2em;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.board-title-edit {
+  input {
+    padding: 5px;
+    font-size: 2em;
+    font-weight: bold;
+  }
+
+}
+

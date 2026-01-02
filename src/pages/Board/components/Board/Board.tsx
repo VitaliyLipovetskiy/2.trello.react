@@ -1,30 +1,72 @@
-import { useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import { List } from '../index';
-import { ICard } from '../../../../common/interfaces';
+import api from '../../../../api/request';
+import {BoardTitle, List} from '../index';
+import {IBoardDetail, IResult} from '../../../../common/interfaces';
 import './board.scss'
 
-type ListBoardType = {
-    id: number,
-    title: string,
-    cards: ICard[],
-}
-
 export const Board = () => {
-    const [title, setTitle] = useState('Моя тестова дошка');
-    const [lists, setLists] = useState<ListBoardType[]>(listsDefault);
-    const { id } = useParams();
+    const {id} = useParams();
+    const [board, setBoard] = useState<IBoardDetail>();
+    const [title, setTitle] = useState('');
+    const [titleValid, setTitleValid] = useState(true);
+    const [titleReadOnly, setTitleReadOnly] = useState(true);
+    const titleTemp = useRef('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const board = await api.get<any, IBoardDetail, any>(`board/${id}`)
+            setBoard(board)
+            setTitle(board.title);
+            titleTemp.current = board.title;
+        };
+        fetchData();
+    }, []);
+
+    const handleClickTitle = () => {
+        setTitleReadOnly(false);
+    }
+
+    const handleOnBlurTitle = () => {
+        setTitleReadOnly(true);
+        if (!titleValid) {
+            setTitle(titleTemp.current);
+        } else if (titleTemp.current !== title.trim()){
+            const fetchData = async () => {
+                const {result} = await api.put<any, IResult, any>(`board/${id}`, {title});
+                if (result === 'Updated') {
+                    const board = await api.get<any, IBoardDetail, any>(`board/${id}`);
+                    setBoard(board);
+                    setTitle(board.title);
+                    titleTemp.current = board.title;
+                }
+            };
+            fetchData();
+        }
+    }
 
     return (
         <div className={'board'}>
             <header>
                 <div className={'board-header'}>
-                    <Link to={'/'}>{'<-Додому'}</Link>
-                    <h1>{title} {id}</h1>
+                    <div className={'board-home'}>
+                        <Link to={'/'}>{'<-Додому'}</Link>
+                    </div>
+                    <div className={'board-content'}>
+                        <BoardTitle
+                            title={title}
+                            setTitle={setTitle}
+                            setTitleValid={setTitleValid}
+                            readonly={titleReadOnly}
+                            className={titleReadOnly ? 'board-title-readonly' : 'board-title-edit'}
+                            onClick={handleClickTitle}
+                            onBlur={handleOnBlurTitle}
+                        />
+                    </div>
                 </div>
             </header>
             <div className={'container'}>
-                {lists.map((list) =>
+                {board?.lists.map((list) =>
                     <List
                         key={list.id}
                         title={list.title}
@@ -33,37 +75,10 @@ export const Board = () => {
                 )}
                 <div className={'board-list'}>
                     <div className={'board-list-add'}>
-                    <button>+ Добавити список</button>
+                        <button>+ Добавити список</button>
                     </div>
                 </div>
             </div>
         </div>
     )
 }
-
-const listsDefault: ListBoardType[] = [
-    {
-        id: 1,
-        title: "Плани",
-        cards: [
-            {id: 1, title: "помити кота"},
-            {id: 2, title: "приготувати суп"},
-            {id: 3, title: "сходити в магазин"}
-        ]
-    },
-    {
-        id: 2,
-        title: "В процесі",
-        cards: [
-            {id: 4, title: "подивитися серіал"}
-        ]
-    },
-    {
-        id: 3,
-        title: "Зроблено",
-        cards: [
-            {id: 5, title: "зробити домашку"},
-            {id: 6, title: "погуляти з собакой"}
-        ]
-    }
-]

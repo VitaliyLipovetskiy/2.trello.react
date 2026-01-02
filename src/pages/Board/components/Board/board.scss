@@ -3,23 +3,32 @@
 .board {
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
 
   .board-header {
     display: flex;
-    justify-content: space-around;
+    flex-direction: row;
+    height: 60px;
 
-    a {
-      position: absolute;
-      height: 50px;
+    .board-home {
+      position: fixed;
+      height: 60px;
       width: 150px;
       left: 0;
-      margin: 5px;
+      justify-self: center;
+      justify-items: center;
+      justify-content: center;
       align-self: center;
       align-content: center;
-      text-align: center;
-      background-color: gray;
-      border-radius: 5px;
-      color: black;
+      align-items: center;
+    }
+
+    .board-content {
+      position: fixed;
+      left: 150px;
+      height: 60px;
+      width: 100%;
+      justify-items: center;
     }
   }
 
@@ -54,4 +63,5 @@
     background-color: white;
     border-radius: 10px;
   }
+
 }
