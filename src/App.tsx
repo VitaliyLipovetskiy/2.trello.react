@@ -1,7 +1,7 @@
 import React, {StrictMode} from 'react';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
-import { Board, Home } from './pages';
+import { Board, Home } from './pages/pages';
 
 function App() {
     return (

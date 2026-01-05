@@ -1,36 +1,31 @@
 import {useEffect, useState} from 'react';
-import {Board} from '../index';
-import {CreateBoard} from '../../../Board/components';
+import {Board} from '../components';
+import {CreateBoard} from '../../../Board/components/components';
 import {Link} from 'react-router-dom';
-import api from '../../../../api/request';
+import {IBoard} from "../../../../common/interfaces";
+import {
+    createBoard,
+    getAllBoards,
+    getBoardById,
+} from "../../../../services/services";
 import './home.scss';
-import {IResultCreated} from "../../../../common/interfaces";
-
-type BoardType = {
-    id: number,
-    title: string,
-    custom: {
-        background: string
-    },
-}
 
 export const Home = () => {
-    const [boards, setBoards] = useState<BoardType[]>([]);
+    const [boards, setBoards] = useState<IBoard[]>([]);
     const [boardModal, setBoardModal] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
-            const { boards } = await api.get<any, { boards: BoardType[] }, any>('board');
+            const { boards } = await getAllBoards();
             setBoards(boards);
         };
         fetchData();
     }, []);
 
     const handleCreateBoard = async (title: string) => {
-        const {result, id} = await api.post<any, IResultCreated, any>('board', {title});
+        const {result, id} = await createBoard(title);
         if (result === 'Created') {
-            const board = await api.get<any, BoardType, any>(`board/${id}`);
-            board.id = id;
+            const board = await getBoardById(id);
             setBoards([...boards, board]);
         } else {
             // toast

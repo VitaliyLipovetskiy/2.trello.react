@@ -7,11 +7,20 @@ type BoardTitleProps = {
     className?: string,
     setTitle: (title: string) => void,
     setTitleValid: (isValid: boolean) => void,
-    onClick?: () => void,
+    handleClickTitle?: () => void,
     onBlur?: () => void
 }
 
-export const BoardTitle = ({ title, setTitle, setTitleValid, readonly, className, onClick, onBlur }: BoardTitleProps) => {
+export const BoardTitle = (
+    {
+        title,
+        setTitle,
+        setTitleValid,
+        readonly,
+        className,
+        handleClickTitle,
+        onBlur }:
+    BoardTitleProps) => {
     const [titleTouched, setTitleTouched] = useState(false);
     const titleValid = useRef(true);
     const [errors, setErrors] = useState<string[]>([]);
@@ -65,7 +74,7 @@ export const BoardTitle = ({ title, setTitle, setTitleValid, readonly, className
                 required
                 readOnly={readonly}
                 autoFocus={!readonly}
-                onClick={onClick}
+                onClick={handleClickTitle}
                 onChange={handleChangeTitle}
                 onBlur={handleOnBlurTitle}
                 onKeyUp={handleKeyUpEnter}

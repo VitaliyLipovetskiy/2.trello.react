@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { BoardTitle } from "../index";
+import { BoardTitle } from "../BoardTitle/BoardTitle";
 import './create-board.scss';
 
 type CreateBoardProp = {
@@ -39,9 +39,12 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
         <div
             className={'modal-crete-board'}
             // onClick={closeModalWindow}
-            aria-hidden={true}
+            // aria-hidden={true}
         >
-            <form className={'modal-content'} onSubmit={handleClickAccept}>
+            <form
+                className={'modal-content'}
+                onSubmit={handleClickAccept}
+            >
                 <i
                     className={'btn-close'}
                     onClick={onClose}

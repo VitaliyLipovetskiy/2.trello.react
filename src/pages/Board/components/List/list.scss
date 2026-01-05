@@ -3,22 +3,53 @@
 .board-list {
   display: flex;
   flex-direction: column;
-  min-width: 200px;
+  min-width: 260px;
   background-color: $primary-background;
   color: $primary-color;
   border: 1px solid $primary-background;
   margin: 5px;
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 .board-list-title {
-  margin: 10px;
+  margin: 6px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $primary-background;
+
+  input {
+    padding: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    display: block;
+    border: none;
+    color: $primary-color;
+  }
+
+  @include error;
+}
+
+.board-list-title-readonly input {
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.board-list-title-write input {
+  background-color: $primary-background-element;
 }
 
 .board-list-add-card {
-  margin-top: 3px;
+  margin: 5px;
 
   @include button;
+
+  button {
+    color: $secondary-color;
+  }
+
+  button:hover {
+    color: $primary-color;
+  }
 }
 

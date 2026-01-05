@@ -1,3 +1,5 @@
+@import './../../../../index';
+
 .board-title {
   display: flex;
   flex-direction: column;
@@ -7,11 +9,7 @@
     padding: 10px;
   }
 
-  .error p {
-    margin: 0;
-    color: red;
-    font-size: 12px;
-  }
+  @include error;
 }
 
 .board-title-readonly input {

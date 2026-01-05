@@ -1,26 +1,43 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import api from '../../../../api/request';
-import {BoardTitle, List} from '../index';
-import {IBoardDetail, IResult} from '../../../../common/interfaces';
-import './board.scss'
+import {BoardTitle, CreateList, List} from '../components';
+import {IBoard} from '../../../../common/interfaces';
+import {
+    createList,
+    getBoardById,
+    updateBoard
+} from '../../../../services/services';
+import './board.scss';
 
 export const Board = () => {
     const {id} = useParams();
-    const [board, setBoard] = useState<IBoardDetail>();
+    const [board, setBoard] = useState<IBoard>();
     const [title, setTitle] = useState('');
     const [titleValid, setTitleValid] = useState(true);
     const [titleReadOnly, setTitleReadOnly] = useState(true);
     const titleTemp = useRef('');
+    const [isListNew, setIsListNew] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            const board = await api.get<any, IBoardDetail, any>(`board/${id}`)
+            const board = await getBoardById(+(id || 0));
             setBoard(board)
             setTitle(board.title);
             titleTemp.current = board.title;
         };
         fetchData();
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setIsListNew(false);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
     }, []);
 
     const handleClickTitle = () => {
@@ -31,17 +48,27 @@ export const Board = () => {
         setTitleReadOnly(true);
         if (!titleValid) {
             setTitle(titleTemp.current);
-        } else if (titleTemp.current !== title.trim()){
+        } else if (titleTemp.current !== title.trim()) {
             const fetchData = async () => {
-                const {result} = await api.put<any, IResult, any>(`board/${id}`, {title});
+                const {result} = await updateBoard(+(id || 0), title);
                 if (result === 'Updated') {
-                    const board = await api.get<any, IBoardDetail, any>(`board/${id}`);
+                    const board = await getBoardById(+(id || 0));
                     setBoard(board);
                     setTitle(board.title);
                     titleTemp.current = board.title;
                 }
             };
             fetchData();
+        }
+    }
+
+    const handleCreateList = async (title: string) => {
+        const {result} = await createList(+(id || 0),title, (board?.lists.length || 0) + 1);
+        if (result === 'Created') {
+            const board = await getBoardById(+(id || 0));
+            setBoard(board);
+        } else {
+            // toast
         }
     }
 
@@ -59,25 +86,28 @@ export const Board = () => {
                             setTitleValid={setTitleValid}
                             readonly={titleReadOnly}
                             className={titleReadOnly ? 'board-title-readonly' : 'board-title-edit'}
-                            onClick={handleClickTitle}
+                            handleClickTitle={handleClickTitle}
                             onBlur={handleOnBlurTitle}
                         />
                     </div>
                 </div>
             </header>
-            <div className={'container'}>
+            <div
+                className={'board-container'}
+                aria-hidden={true}
+            >
                 {board?.lists.map((list) =>
                     <List
                         key={list.id}
-                        title={list.title}
-                        cards={list.cards}
+                        id={+(id || 0)}
+                        list={list}
                     />
                 )}
-                <div className={'board-list'}>
-                    <div className={'board-list-add'}>
-                        <button>+ Добавити список</button>
-                    </div>
-                </div>
+                <CreateList
+                    isListNew={isListNew}
+                    setIsListNew={setIsListNew}
+                    handleCreateList={handleCreateList}
+                />
             </div>
         </div>
     )
