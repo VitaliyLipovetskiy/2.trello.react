@@ -1,5 +1,9 @@
-export { type ICard } from './interfaces/ICard';
-export { type IBoard } from './interfaces/IBoard';
-export { type IBoardList } from './interfaces/IBoardList';
+export { type IBoard } from './interfaces/board/IBoard';
+export { type IBoardList } from './interfaces/board/IBoardList';
+export { type ICard } from './interfaces/card/ICard';
+export { type ICreateCard } from './interfaces/card/ICreateCard';
+export { type IUpdateCard } from './interfaces/card/IUpdateCard';
+export { type ICreateList } from './interfaces/list/ICreateList';
+export { type IUpdateList } from './interfaces/list/IUpdateList';
 export { type IResult } from './interfaces/IResult';
 export { type IResultCreated } from './interfaces/IResultCreated';

@@ -29,7 +29,7 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
         };
     }, []);
 
-    const handleClickAccept = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleAcceptCreateBoard = (e: React.MouseEvent) => {
         e.preventDefault();
         handleCreateBoard(title);
         onClose();
@@ -39,16 +39,13 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
         <div
             className={'modal-crete-board'}
             // onClick={closeModalWindow}
-            // aria-hidden={true}
         >
-            <form
-                className={'modal-content'}
-                onSubmit={handleClickAccept}
-            >
+            <div className={'modal-content'}>
                 <i
                     className={'btn-close'}
                     onClick={onClose}
                     onKeyDown={onClose}
+                    tabIndex={-1}
                     aria-hidden={true}
                 >
                     X
@@ -62,13 +59,13 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
                     setTitleValid={setTitleValid}
                 />
                 <button
-                    type={'submit'}
                     className={'btn-accept' + (titleValid ? '' : ' disabled')}
                     disabled={!titleValid}
+                    onMouseDown={handleAcceptCreateBoard}
                 >
                     Створити
                 </button>
-            </form>
+            </div>
         </div>
     )
 }

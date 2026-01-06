@@ -1,11 +1,11 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {BoardTitle, CreateList, List} from '../components';
-import {IBoard} from '../../../../common/interfaces';
+import {IBoard, ICreateList} from '../../../../common/interfaces';
 import {
     createList,
     getBoardById,
-    updateBoard
+    updateBoardById
 } from '../../../../services/services';
 import './board.scss';
 
@@ -15,17 +15,18 @@ export const Board = () => {
     const [title, setTitle] = useState('');
     const [titleValid, setTitleValid] = useState(true);
     const [titleReadOnly, setTitleReadOnly] = useState(true);
-    const titleTemp = useRef('');
     const [isListNew, setIsListNew] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            const board = await getBoardById(+(id || 0));
-            setBoard(board)
-            setTitle(board.title);
-            titleTemp.current = board.title;
+            const iBoard = await getBoardById(+(id || 0));
+            setBoard(iBoard)
+            setTitle(iBoard.title);
         };
-        fetchData();
+        fetchData().catch(error => {
+            console.log(error);
+            // toast
+        });
     }, []);
 
     useEffect(() => {
@@ -40,36 +41,51 @@ export const Board = () => {
         };
     }, []);
 
-    const handleClickTitle = () => {
-        setTitleReadOnly(false);
-    }
-
     const handleOnBlurTitle = () => {
         setTitleReadOnly(true);
         if (!titleValid) {
-            setTitle(titleTemp.current);
-        } else if (titleTemp.current !== title.trim()) {
+            setTitle(board?.title || '');
+        } else if (board?.title !== title.trim()) {
             const fetchData = async () => {
-                const {result} = await updateBoard(+(id || 0), title);
+                const {result} = await updateBoardById(+(id || 0), title);
                 if (result === 'Updated') {
                     const board = await getBoardById(+(id || 0));
                     setBoard(board);
                     setTitle(board.title);
-                    titleTemp.current = board.title;
                 }
             };
-            fetchData();
+            fetchData().catch(error => {
+                console.log(error);
+                // toast
+            });
         }
     }
 
     const handleCreateList = async (title: string) => {
-        const {result} = await createList(+(id || 0),title, (board?.lists.length || 0) + 1);
+        const listData: ICreateList = {
+            title,
+            position: (board?.lists.length || 0) + 1,
+        }
+        const {result} = await createList(+(id || 0),listData);
         if (result === 'Created') {
             const board = await getBoardById(+(id || 0));
             setBoard(board);
         } else {
             // toast
         }
+    }
+
+    const updateBoard = async () => {
+        return await getBoardById(+(id || 0));
+    }
+
+    const handleUpdateBoard = () => {
+        updateBoard()
+            .then(board => setBoard(board))
+            .catch(error => {
+                console.log(error);
+                // toast
+            });
     }
 
     return (
@@ -86,7 +102,7 @@ export const Board = () => {
                             setTitleValid={setTitleValid}
                             readonly={titleReadOnly}
                             className={titleReadOnly ? 'board-title-readonly' : 'board-title-edit'}
-                            handleClickTitle={handleClickTitle}
+                            handleClickTitle={() => setTitleReadOnly(false)}
                             onBlur={handleOnBlurTitle}
                         />
                     </div>
@@ -94,13 +110,15 @@ export const Board = () => {
             </header>
             <div
                 className={'board-container'}
-                aria-hidden={true}
+                // tabIndex={-1}
+                // aria-hidden={true}
             >
                 {board?.lists.map((list) =>
                     <List
                         key={list.id}
-                        id={+(id || 0)}
+                        boarId={+(id || 0)}
                         list={list}
+                        handleUpdateBoard={handleUpdateBoard}
                     />
                 )}
                 <CreateList

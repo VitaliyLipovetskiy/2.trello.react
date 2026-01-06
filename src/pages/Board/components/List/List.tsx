@@ -1,52 +1,48 @@
-import React, {useRef, useState} from "react";
-import {IBoardList} from '../../../../common/interfaces';
+import React, {useRef, useState} from 'react';
+import {IBoardList, ICreateCard} from '../../../../common/interfaces';
 import {Card} from '../Card/Card';
+import {CreateCard} from '../CreateCard/CreateCard';
+import {createCard, updateListById} from '../../../../services/board/board.service';
+import {validateTitle} from '../../../../utils/validates';
 import './list.scss';
-import {getBoardById, updateListById} from "../../../../services/board/board.service";
 
-export const List = ({id, list}: { id: number, list: IBoardList }) => {
+type ListProps = {
+    boarId: number,
+    list: IBoardList,
+    handleUpdateBoard: () => void,
+}
+
+export const List = ({boarId, list, handleUpdateBoard}: ListProps) => {
     const [titleReadOnly, setTitleReadOnly] = useState(true);
     const [title, setTitle] = useState(list.title);
-    const [titleValid, setTitleValid] = useState(true);
-    const [titleTouched, setTitleTouched] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
-    const titleTemp = useRef(list.title);
-
-    const handleValidation = (titleName: string) => {
-        const pattern = /^[a-zа-ь0-9-._\s]+[a-zа-ь0-9-._\s]*$/ig;
-        let errorsTitle: string[] = [];
-        if (titleTouched && titleName.trim().length === 0) {
-            errorsTitle.push('- не може бути порожньою');
-        } else if (!pattern.test(titleName)) {
-            errorsTitle.push('- може містити лише літери, цифри, пробіли, крапки "-" і "_"');
-        }
-        setTitleValid(errorsTitle.length === 0);
-        setErrors(errorsTitle);
-    }
+    const [isCardNew, setIsCardNew] = useState(false);
 
     const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value);
-        setTitleTouched(true);
-        handleValidation(e.target.value);
+        const titleErrors = validateTitle(e.target.value);
+        setErrors(titleErrors);
     }
 
     const handleOnBlurTitle = () => {
         setErrors([]);
         setTitleReadOnly(true);
-        if (!titleValid) {
-            setTitle(titleTemp.current);
-        } else if (titleTemp.current !== title.trim()) {
+        if (errors.length !== 0) {
+            setTitle(list.title);
+        } else if (list.title !== title.trim()) {
             const fetchData = async () => {
-                list.title = title.trim();
-                const {result} = await updateListById(id, list.id, {title: title.trim()});
+                const {result} = await updateListById(boarId, list.id, {title: title.trim()});
                 if (result === 'Updated') {
-                    const board = await getBoardById(+(id || 0));
-                    titleTemp.current = board.lists.find((l) => l.id === list.id)?.title || '';
-                    setTitle(titleTemp.current)
+                    handleUpdateBoard();
+                } else {
+                    // toast
                 }
             };
-            fetchData();
+            fetchData().catch(error => {
+                console.log(error);
+                // toast
+            });
         }
     }
 
@@ -56,6 +52,22 @@ export const List = ({id, list}: { id: number, list: IBoardList }) => {
                 inputRef.current.blur();
             }
             handleOnBlurTitle();
+        }
+    }
+
+    const handleCreateCard = async (title: string) => {
+        const newCard: ICreateCard = {
+            title,
+            list_id: list.id,
+            position: list.cards
+                .map(c => c.position)
+                .reduce((a, b) => Math.max(a, b), 0) + 1,
+        }
+        const {result} = await createCard(boarId,newCard);
+        if (result === 'Created') {
+            handleUpdateBoard();
+        } else {
+            // toast
         }
     }
 
@@ -75,19 +87,25 @@ export const List = ({id, list}: { id: number, list: IBoardList }) => {
                     onBlur={handleOnBlurTitle}
                     onKeyUp={handleKeyUpEnter}
                 />
-                <div className={'error'} hidden={titleValid}>
+                <div className={'error'} hidden={errors.length === 0}>
                     {errors.map(e => <p key={e}>{e}</p>)}
                 </div>
             </div>
             {list.cards.map(card =>
                 <Card
                     key={card.id}
+                    boardId={boarId}
+                    listId={list.id}
+                    cardId={card.id}
                     title={card.title}
+                    handleUpdateCard={handleUpdateBoard}
                 />
             )}
-            <div className={'board-list-add-card'}>
-                <button>+ Добавити карточку</button>
-            </div>
+            <CreateCard
+                isCardNew={isCardNew}
+                setIsCardNew={setIsCardNew}
+                handleCreateCard={handleCreateCard}
+            />
         </div>
     )
 }

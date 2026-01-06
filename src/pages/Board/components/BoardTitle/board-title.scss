@@ -3,10 +3,10 @@
 .board-title {
   display: flex;
   flex-direction: column;
-  top: 5px;
 
   input {
     padding: 10px;
+    text-align: center;
   }
 
   @include error;
@@ -20,12 +20,8 @@
   cursor: pointer;
 }
 
-.board-title-edit {
-  input {
-    padding: 5px;
-    font-size: 2em;
-    font-weight: bold;
-  }
-
+.board-title-edit input {
+  padding: 5px;
+  font-size: 2em;
+  font-weight: bold;
 }
-

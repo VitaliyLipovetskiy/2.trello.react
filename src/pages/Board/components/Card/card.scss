@@ -1,15 +1,32 @@
 @import './../../../../index';
 
 .board-card {
+  display: flex;
+  flex-direction: column;
   margin-top: 3px;
-  padding: 10px;
   border-radius: 5px;
-  border: 1px solid $secondary-background;
-  background-color: $secondary-background;
-  color: $primary-color;
+  font-size: 16px;
+  background-color: $primary-background-element;
+  border: 1px solid $primary-background-element;
+
+  input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid $primary-background-element;
+    background-color: $primary-background-element;
+    color: $primary-color;
+  }
+
+  @include error;
 }
 
 .board-card:hover {
   cursor: pointer;
   border: 1px solid $primary-color;
+}
+
+.board-card-readonly input {
+  display: block;
+  border: none;
+  cursor: pointer;
 }

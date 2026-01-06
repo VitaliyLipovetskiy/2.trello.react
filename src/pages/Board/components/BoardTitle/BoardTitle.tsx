@@ -1,4 +1,5 @@
-import React, {useRef, useState} from "react";
+import React, {useRef, useState} from 'react';
+import {validateTitle} from '../../../../utils/validates';
 import './board-title.scss';
 
 type BoardTitleProps = {
@@ -19,32 +20,16 @@ export const BoardTitle = (
         readonly,
         className,
         handleClickTitle,
-        onBlur }:
-    BoardTitleProps) => {
-    const [titleTouched, setTitleTouched] = useState(false);
-    const titleValid = useRef(true);
+        onBlur,
+    }: BoardTitleProps) => {
     const [errors, setErrors] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleValidation = (titleName: string) => {
-        const pattern = /^[a-zа-ь0-9-._\s]+[a-zа-ь0-9-._\s]*$/ig;
-        let errorsTitle: string[] = [];
-        titleValid.current = true;
-        if (titleTouched && titleName.trim().length === 0) {
-            titleValid.current = false;
-            errorsTitle.push('- не може бути порожньою');
-        } else if (!pattern.test(titleName)) {
-            titleValid.current = false;
-            errorsTitle.push('- може містити лише літери, цифри, пробіли, крапки "-" і "_"');
-        }
-        setTitleValid(titleValid.current);
-        setErrors(errorsTitle);
-    }
-
     const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTitle(e.target.value);
-        setTitleTouched(true);
-        handleValidation(e.target.value);
+        const titleErrors = validateTitle(e.target.value);
+        setErrors(titleErrors);
+        setTitleValid(titleErrors.length === 0);
     }
 
     const handleOnBlurTitle = () => {
@@ -79,7 +64,7 @@ export const BoardTitle = (
                 onBlur={handleOnBlurTitle}
                 onKeyUp={handleKeyUpEnter}
             />
-            <div className={'error'} hidden={titleValid.current}>
+            <div className={'error'} hidden={errors.length === 0}>
                 {errors.map(e => <p key={e}>{e}</p>)}
             </div>
         </div>

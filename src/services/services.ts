@@ -3,8 +3,9 @@ export {
     createList,
     getAllBoards,
     getBoardById,
-    updateBoard,
+    updateBoardById,
     // updateGroupLists,
-    updateListById
+    updateListById,
+    updateCardById,
 } from './board/board.service';
 

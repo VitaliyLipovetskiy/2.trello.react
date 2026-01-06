@@ -1,4 +1,4 @@
-import {ICard} from "./ICard";
+import {ICard} from "../card/ICard";
 
 export interface IBoardList {
     id: number,

@@ -39,17 +39,3 @@
   background-color: $primary-background-element;
 }
 
-.board-list-add-card {
-  margin: 5px;
-
-  @include button;
-
-  button {
-    color: $secondary-color;
-  }
-
-  button:hover {
-    color: $primary-color;
-  }
-}
-
