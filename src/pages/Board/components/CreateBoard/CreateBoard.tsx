@@ -11,12 +11,6 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
     const [title, setTitle] = useState('');
     const [titleValid, setTitleValid] = useState(false);
 
-    // const closeModalWindow = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    //     if ((e.target as Element).className === 'modal-crete-board') {
-    //         onClose();
-    //     }
-    // }
-
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
@@ -36,10 +30,7 @@ export const CreateBoard = ({onClose, handleCreateBoard}: CreateBoardProp) => {
     }
 
     return (
-        <div
-            className={'modal-crete-board'}
-            // onClick={closeModalWindow}
-        >
+        <div className={'modal-crete-board'}>
             <div className={'modal-content'}>
                 <i
                     className={'btn-close'}

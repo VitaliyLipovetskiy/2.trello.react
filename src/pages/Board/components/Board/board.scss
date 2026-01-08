@@ -16,17 +16,41 @@
       height: 60px;
       width: 150px;
       left: 0;
-      justify-self: center;
       justify-items: center;
-      justify-content: center;
-      align-self: center;
       align-content: center;
-      align-items: center;
+    }
+
+    .color-picker-wrapper {
+      display: inline-block;
+      position: fixed;
+      right: 0;
+      width: 60px;
+      height: 60px;
+      justify-items: center;
+      align-content: center;
+
+      .board-color-input {
+        opacity: 0;
+        position: absolute;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+        border: none;
+      }
+
+      .color-swatch {
+        display: block;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 1px solid $secondary-color;
+        cursor: pointer;
+      }
     }
 
     .board-content {
       position: fixed;
-      left: 150px;
+      left: 0;
       height: 60px;
       width: 100%;
       justify-items: center;

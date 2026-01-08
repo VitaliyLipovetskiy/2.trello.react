@@ -9,7 +9,7 @@ type BoardTitleProps = {
     setTitle: (title: string) => void,
     setTitleValid: (isValid: boolean) => void,
     handleClickTitle?: () => void,
-    onBlur?: () => void
+    handleOnBlurTitle?: () => void
 }
 
 export const BoardTitle = (
@@ -20,7 +20,7 @@ export const BoardTitle = (
         readonly,
         className,
         handleClickTitle,
-        onBlur,
+        handleOnBlurTitle,
     }: BoardTitleProps) => {
     const [errors, setErrors] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -32,19 +32,16 @@ export const BoardTitle = (
         setTitleValid(titleErrors.length === 0);
     }
 
-    const handleOnBlurTitle = () => {
+    const handleOnBlur = () => {
         setErrors([]);
-        if (onBlur) {
-            onBlur();
+        if (handleOnBlurTitle) {
+            handleOnBlurTitle();
         }
     }
     
     const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            if (inputRef.current) {
-                inputRef.current.blur();
-            }
-            handleOnBlurTitle();
+        if (e.key === "Enter" && inputRef.current) {
+            inputRef.current.blur();
         }
     }
 
@@ -61,7 +58,7 @@ export const BoardTitle = (
                 autoFocus={!readonly}
                 onClick={handleClickTitle}
                 onChange={handleChangeTitle}
-                onBlur={handleOnBlurTitle}
+                onBlur={handleOnBlur}
                 onKeyUp={handleKeyUpEnter}
             />
             <div className={'error'} hidden={errors.length === 0}>

@@ -33,11 +33,10 @@ export const CreateCard = (
             if (inputRef.current) {
                 inputRef.current.blur();
             }
-            handleCreateCard(title);
         }
     }
 
-    const handleClickAcceptNewCard = (e: React.FormEvent<HTMLButtonElement>) => {
+    const handleAcceptCreateNewCard = (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         setTitle('');
         setErrors([]);
@@ -57,6 +56,9 @@ export const CreateCard = (
     const handleBlurInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
         setIsCardNew(false);
+        if (titleTouched && errors.length === 0) {
+            handleCreateCard(title);
+        }
     }
 
     return (
@@ -84,7 +86,7 @@ export const CreateCard = (
                         <button
                             className={'btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
                             disabled={!(titleTouched && errors.length === 0)}
-                            onMouseDown={handleClickAcceptNewCard}
+                            onMouseDown={handleAcceptCreateNewCard}
                         >
                             Додати картку
                         </button>

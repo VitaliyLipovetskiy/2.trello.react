@@ -1,4 +1,5 @@
 export { type IBoard } from './interfaces/board/IBoard';
+export { type IUpdateBoard } from './interfaces/board/IUpdateBoard';
 export { type IBoardList } from './interfaces/board/IBoardList';
 export { type ICard } from './interfaces/card/ICard';
 export { type ICreateCard } from './interfaces/card/ICreateCard';

@@ -1,9 +1,11 @@
 import React, {useRef, useState} from 'react';
 import {IBoardList, ICreateCard} from '../../../../common/interfaces';
 import {Card} from '../Card/Card';
-import {CreateCard} from '../CreateCard/CreateCard';
+import {CreateCard} from '../components';
 import {createCard, updateListById} from '../../../../services/board/board.service';
 import {validateTitle} from '../../../../utils/validates';
+import {toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './list.scss';
 
 type ListProps = {
@@ -30,18 +32,21 @@ export const List = ({boarId, list, handleUpdateBoard}: ListProps) => {
         setTitleReadOnly(true);
         if (errors.length !== 0) {
             setTitle(list.title);
+            toast.warning('Update list title canceled');
         } else if (list.title !== title.trim()) {
             const fetchData = async () => {
                 const {result} = await updateListById(boarId, list.id, {title: title.trim()});
                 if (result === 'Updated') {
                     handleUpdateBoard();
+                    toast.success('List title updated');
                 } else {
-                    // toast
+                    console.log('List title is not updated');
+                    toast.error('List title is not updated');
                 }
             };
             fetchData().catch(error => {
                 console.log(error);
-                // toast
+                toast.error(error);
             });
         }
     }
@@ -51,11 +56,11 @@ export const List = ({boarId, list, handleUpdateBoard}: ListProps) => {
             if (inputRef.current) {
                 inputRef.current.blur();
             }
-            handleOnBlurTitle();
         }
     }
 
     const handleCreateCard = async (title: string) => {
+        console.log('handleCreateCard')
         const newCard: ICreateCard = {
             title,
             list_id: list.id,
@@ -66,8 +71,10 @@ export const List = ({boarId, list, handleUpdateBoard}: ListProps) => {
         const {result} = await createCard(boarId,newCard);
         if (result === 'Created') {
             handleUpdateBoard();
+            toast.success('New card created');
         } else {
-            // toast
+            console.log('Card is not created');
+            toast.error('Card is not created');
         }
     }
 

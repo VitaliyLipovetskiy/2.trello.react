@@ -1,13 +1,15 @@
 import {useEffect, useState} from 'react';
 import {Board} from '../components';
-import {CreateBoard} from '../../../Board/components/components';
+import {CreateBoard, ProgressBar} from '../../../Board/components/components';
 import {Link} from 'react-router-dom';
-import {IBoard} from "../../../../common/interfaces";
+import {IBoard} from '../../../../common/interfaces';
 import {
     createBoard,
     getAllBoards,
     getBoardById,
-} from "../../../../services/services";
+} from '../../../../services/services';
+import {toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './home.scss';
 
 export const Home = () => {
@@ -19,7 +21,10 @@ export const Home = () => {
             const { boards } = await getAllBoards();
             setBoards(boards);
         };
-        fetchData();
+        fetchData().catch(error => {
+            console.log(error);
+            toast.error(error);
+        });
     }, []);
 
     const handleCreateBoard = async (title: string) => {
@@ -27,31 +32,39 @@ export const Home = () => {
         if (result === 'Created') {
             const board = await getBoardById(id);
             setBoards([...boards, board]);
+            toast.success('New board created');
         } else {
-            // toast
+            console.log('Board is not created');
+            toast.error('Board is not created');
         }
     }
 
     return (
-        <div className={'home'}>
-            <h1>Мої дошки</h1>
-            <div className={'container'}>
-                {boards?.map(board =>
-                    <Link key={board.id} to={'/board/' + board.id}>
-                        <Board title={board.title} background={board.custom?.background}/>
-                    </Link>
-                )}
-                <button
-                    className={'board-add'}
-                    onClick={() => setBoardModal(true)}
-                >
-                    + Додати дошку
-                </button>
+        <ProgressBar>
+            <div className={'home'}>
+                <h1>Мої дошки</h1>
+                <div className={'container'}>
+                    {boards?.map(board =>
+                        <Link key={board.id} to={'/board/' + board.id}>
+                            <Board
+                                title={board.title}
+                                background={board.custom?.background}
+                            />
+                        </Link>
+                    )}
+                    <button
+                        className={'board-add'}
+                        onClick={() => setBoardModal(true)}
+                    >
+                        + Додати дошку
+                    </button>
+                </div>
+                {boardModal &&
+                    <CreateBoard
+                        onClose={() => setBoardModal(false)}
+                        handleCreateBoard={handleCreateBoard}
+                    />}
             </div>
-            {boardModal && <CreateBoard
-                onClose={() => setBoardModal(false)}
-                handleCreateBoard={handleCreateBoard}
-            />}
-        </div>
+        </ProgressBar>
     )
 }

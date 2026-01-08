@@ -2,6 +2,8 @@ import React, {useRef, useState} from 'react';
 import {updateCardById} from '../../../../services/services';
 import {IUpdateCard} from '../../../../common/interfaces';
 import {validateTitle} from '../../../../utils/validates';
+import {toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './card.scss';
 
 type CardTitleProps = {
@@ -35,17 +37,19 @@ export const Card = (props: CardTitleProps) => {
 
     const handleOnBlurTitle = () => {
         if (errors.length !== 0 || title.trim() === props.title) {
+            toast.warning('Update card title canceled');
             return;
         }
         updateCard()
             .then(result => {
                 if (result === 'Updated') {
                     props.handleUpdateCard();
+                    toast.success('Card updated');
                 }
             })
             .catch(error => {
                 console.log(error);
-                // toast
+                toast.error(error);
             });
     }
 
@@ -54,7 +58,6 @@ export const Card = (props: CardTitleProps) => {
             if (inputRef.current) {
                 inputRef.current.blur();
             }
-            handleOnBlurTitle();
         }
     }
 

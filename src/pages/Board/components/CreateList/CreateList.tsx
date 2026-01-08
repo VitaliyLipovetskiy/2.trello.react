@@ -28,26 +28,24 @@ export const CreateList = ({isListNew, setIsListNew, handleCreateList }: CreateL
         setErrors(titleErrors);
     }
 
+    const setDefaultValues = () => {
+        setTitle('');
+        setTitleTouched(false);
+        setErrors([]);
+        setIsListNew(false);
+    }
+
     const handleAcceptNewList = (e: React.MouseEvent) => {
         e.preventDefault();
-        setTitle('');
-        setErrors([]);
-        setTitleTouched(false);
-        setIsListNew(false);
+        setDefaultValues();
         handleCreateList(title);
     }
 
-    const handleCancelNewList = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setTitle('');
-        setErrors([]);
-        setTitleTouched(false);
-        setIsListNew(false);
-    }
-
-    const handleBlurInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        setIsListNew(false);
+    const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleCreateList(title);
+            setDefaultValues()
+        }
     }
 
     return (
@@ -63,7 +61,8 @@ export const CreateList = ({isListNew, setIsListNew, handleCreateList }: CreateL
                         required
                         autoFocus
                         onChange={handleChangeTitle}
-                        onBlur={handleBlurInput}
+                        onKeyUp={handleKeyUpEnter}
+                        onBlur={() => setDefaultValues()}
                     />
                     <div className={'error'} hidden={errors.length === 0}>
                         {errors.map(e => <p key={e}>{e}</p>)}
@@ -78,7 +77,7 @@ export const CreateList = ({isListNew, setIsListNew, handleCreateList }: CreateL
                         </button>
                         <button
                             className={'btn-close'}
-                            onMouseDown={handleCancelNewList}
+                            onMouseDown={() => setDefaultValues()}
                         >
                             X
                         </button>
