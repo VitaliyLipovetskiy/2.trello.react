@@ -2,7 +2,6 @@
   "name": "start",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://vitaliylipovetskiy.github.io/2.trello.react",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "@testing-library/dom": "^10.4.1",
@@ -53,5 +52,6 @@
   "devDependencies": {
     "gh-pages": "^6.3.0",
     "prettier": "3.7.4"
-  }
+  },
+  "homepage": "https://vitaliylipovetskiy.github.io/2.trello.react/"
 }

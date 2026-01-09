@@ -9,6 +9,7 @@ function App() {
             <Routes>
                 <Route path='/' element={<Home/>}/>
                 <Route path='/board/:id' element={<Board />}/>
+                <Route path='*' element={<Home />}/>
             </Routes>
         </StrictMode>
     );
