@@ -1,4 +1,5 @@
-@import './../../../../index';
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
 
 .board-list-add {
   display: flex;
@@ -8,6 +9,24 @@
   border: none;
   margin: 5px;
   border-radius: 10px;
+
+  .board-list-add-btn {
+    display: flex;
+    flex-direction: row;
+    min-width: 260px;
+    padding: 10px;
+    font-size: 16px;
+    align-items: center;
+    color: $secondary-background;
+    background-color: rgba(255, 254, 254, 0.88);
+    border: none;
+    border-radius: 10px;
+  }
+
+  .board-list-add-btn:hover {
+    cursor: pointer;
+    background-color: $secondary-color;
+  }
 
   .board-list-new {
     display: flex;
@@ -65,23 +84,5 @@
         cursor: not-allowed;
       }
     }
-  }
-
-  .board-list-add-btn {
-    display: flex;
-    flex-direction: row;
-    min-width: 260px;
-    padding: 10px;
-    font-size: 16px;
-    align-items: center;
-    color: $secondary-background;
-    background-color: rgba(255, 254, 254, 0.88);
-    border: none;
-    border-radius: 10px;
-  }
-
-  .board-list-add-btn:hover {
-    cursor: pointer;
-    background-color: $secondary-color;
   }
 }

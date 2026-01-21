@@ -1,4 +1,4 @@
 export interface IUpdateList {
-    title?: string,
-    position?: number,
+  title?: string;
+  position?: number;
 }

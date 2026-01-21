@@ -1,15 +1,34 @@
-@import './../../../../index';
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
 
 .board-list {
   display: flex;
   flex-direction: column;
   min-width: 260px;
+  position: relative;
   background-color: $primary-background;
   color: $primary-color;
   border: 1px solid $primary-background;
   margin: 5px;
   padding: 5px;
   border-radius: 10px;
+
+  .board-list-remove {
+    color: $primary-color;
+    background-color: $primary-background;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 20px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+  }
+
+  .board-list-remove:hover {
+    cursor: pointer;
+    background-color: $primary-background-element;
+    border: 1px solid $secondary-color;
+  }
 }
 
 .board-list-title {
@@ -38,4 +57,3 @@
 .board-list-title-write input {
   background-color: $primary-background-element;
 }
-

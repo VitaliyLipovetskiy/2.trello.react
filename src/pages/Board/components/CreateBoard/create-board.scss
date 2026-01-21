@@ -1,4 +1,4 @@
-@import './../../../../index';
+@use 'src/styles/mixins' as *;
 
 .modal-crete-board {
   position: fixed;
@@ -54,5 +54,4 @@
 
     @include button;
   }
-
 }
