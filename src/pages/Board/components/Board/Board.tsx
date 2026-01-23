@@ -47,7 +47,7 @@ export const Board = () => {
     setTitleReadOnly(true);
     if (!titleValid) {
       setTitle(board?.title || '');
-      toast.warning('Title is not updated');
+      toast.warning('Назва дошки не оновлена');
     } else if (board?.title !== title.trim()) {
       const fetchData = async () => {
         const { result } = await updateBoardById(+(id || 0), { title });
@@ -55,7 +55,7 @@ export const Board = () => {
           const board = await getBoardById(+(id || 0));
           setBoard(board);
           setTitle(board.title);
-          toast.success('Board updated');
+          toast.success('Дошку оновлено успішно');
         }
       };
       fetchData().catch((error) => {
@@ -74,10 +74,10 @@ export const Board = () => {
     if (result === 'Created') {
       const board = await getBoardById(+(id || 0));
       setBoard(board);
-      toast.success('New list created');
+      toast.success('Список створено успішно');
     } else {
-      console.log('List is not created');
-      toast.error('List not created');
+      console.log('Список не вдалося створити');
+      toast.error('Список не вдалося створити');
     }
   };
 
@@ -103,8 +103,8 @@ export const Board = () => {
           const board = await getBoardById(+(id || 0));
           setBoard(board);
           setBackgroundColor(board.custom?.background);
-          toast.success('Board updated');
-          console.log('Board updated');
+          toast.success('Дошку оновлено успішно');
+          console.log('Дошку оновлено успішно');
         }
       };
       fetchData().catch((error) => {
@@ -151,7 +151,7 @@ export const Board = () => {
         </header>
         <div className={'board-container'}>
           {board?.lists.map((list) => (
-            <List key={list.id} boarId={+(id || 0)} list={list} handleUpdateBoard={handleUpdateBoard} />
+            <List key={list.id} boardId={+(id || 0)} list={list} handleUpdateBoard={handleUpdateBoard} />
           ))}
           <CreateList isListNew={isListNew} setIsListNew={setIsListNew} handleCreateList={handleCreateList} />
         </div>

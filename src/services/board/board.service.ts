@@ -34,10 +34,18 @@ export const updateListById = async (boardId: number, listId: number, data: IUpd
   return await api.put<any, IResult, any>(`board/${boardId}/list/${listId}`, data);
 };
 
+export const removeListById = async (boardId: number, listId: number) => {
+  return await api.delete<any, IResult, any>(`board/${boardId}/list/${listId}`);
+};
+
 export const createCard = async (boardId: number, data: ICreateCard) => {
   return await api.post<any, IResultCreated, any>(`board/${boardId}/card`, data);
 };
 
 export const updateCardById = async (boardId: number, cardId: number, data: IUpdateCard) => {
   return await api.put<any, IResult, any>(`board/${boardId}/card/${cardId}`, data);
+};
+
+export const removeCardById = async (boardId: number, cardId: number) => {
+  return await api.delete<any, IResult, any>(`board/${boardId}/card/${cardId}`);
 };

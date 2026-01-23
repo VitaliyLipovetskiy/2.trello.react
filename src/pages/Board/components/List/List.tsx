@@ -2,19 +2,20 @@ import React, { useRef, useState } from 'react';
 import { IBoardList, ICreateCard } from '../../../../common/interfaces';
 import { Card } from '../Card/Card';
 import { CreateCard } from '../components';
-import { createCard, updateListById } from '../../../../services/board/board.service';
+import { createCard, removeCardById, removeListById, updateListById } from '../../../../services/board/board.service';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
+import { Tooltip } from 'react-tooltip';
 import 'react-toastify/dist/ReactToastify.css';
 import './list.scss';
 
 type ListProps = {
-  boarId: number;
+  boardId: number;
   list: IBoardList;
   handleUpdateBoard: () => void;
 };
 
-export const List = ({ boarId, list, handleUpdateBoard }: ListProps) => {
+export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
   const [titleReadOnly, setTitleReadOnly] = useState(true);
   const [title, setTitle] = useState(list.title);
   const [errors, setErrors] = useState<string[]>([]);
@@ -32,16 +33,16 @@ export const List = ({ boarId, list, handleUpdateBoard }: ListProps) => {
     setTitleReadOnly(true);
     if (errors.length !== 0) {
       setTitle(list.title);
-      toast.warning('Update list title canceled');
+      toast.warning('Оновлення списка скасовано');
     } else if (list.title !== title.trim()) {
       const fetchData = async () => {
-        const { result } = await updateListById(boarId, list.id, { title: title.trim() });
+        const { result } = await updateListById(boardId, list.id, { title: title.trim() });
         if (result === 'Updated') {
           handleUpdateBoard();
-          toast.success('List title updated');
+          toast.success('Назва списка оновлена успішно');
         } else {
-          console.log('List title is not updated');
-          toast.error('List title is not updated');
+          console.log('Назва списка не оновлена');
+          toast.error('Назва списка не оновлена');
         }
       };
       fetchData().catch((error) => {
@@ -60,34 +61,55 @@ export const List = ({ boarId, list, handleUpdateBoard }: ListProps) => {
   };
 
   const handleCreateCard = async (title: string) => {
-    console.log('handleCreateCard');
     const newCard: ICreateCard = {
       title,
       list_id: list.id,
       position: list.cards.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
     };
-    const { result } = await createCard(boarId, newCard);
+    const { result } = await createCard(boardId, newCard);
     if (result === 'Created') {
       handleUpdateBoard();
-      toast.success('New card created');
+      toast.success('Рарточка створена успішно');
     } else {
-      console.log('Card is not created');
-      toast.error('Card is not created');
+      console.log('Карточка не створена');
+      toast.error('Карточка не створена');
+    }
+  };
+
+  const handleRemoveCard = async (cardId: number) => {
+    const { result } = await removeCardById(boardId, cardId);
+    if (result === 'Deleted') {
+      handleUpdateBoard();
+      toast.success('Карточка видалена успішно');
+    } else {
+      console.log('Карточка не видалена');
+      toast.error('Карточка не видалена');
+    }
+  };
+
+  const handleRemoveList = async () => {
+    const { result } = await removeListById(boardId, list.id);
+    if (result === 'Deleted') {
+      handleUpdateBoard();
+      toast.success('Список видалений успішно');
+    } else {
+      console.log('Список не видалений');
+      toast.error('Список не видалений');
     }
   };
 
   return (
     <div className={'board-list'}>
       <button
-          type="button"
-          className="board-list-remove"
-          data-dismiss="modal"
-          aria-label="Видалити"
-          aria-labelledby={'67'}
-          // onClick={closeModal}
+        data-tooltip-id="tooltip-remove-list"
+        type="button"
+        className="board-list-btn-remove"
+        aria-label="Видалити список"
+        onClick={handleRemoveList}
       >
         <span aria-hidden="true">&times;</span>
       </button>
+      <Tooltip id="tooltip-remove-list" className="board-list-tooltip-remove" content="Видалити список!" place="left" />
       <div className={`${titleReadOnly ? 'board-list-title-readonly' : 'board-list-title-write'} board-list-title`}>
         <input
           name={'title'}
@@ -111,11 +133,12 @@ export const List = ({ boarId, list, handleUpdateBoard }: ListProps) => {
       {list.cards.map((card) => (
         <Card
           key={card.id}
-          boardId={boarId}
+          boardId={boardId}
           listId={list.id}
           cardId={card.id}
           title={card.title}
           handleUpdateCard={handleUpdateBoard}
+          handleRemoveCard={handleRemoveCard}
         />
       ))}
       <CreateCard isCardNew={isCardNew} setIsCardNew={setIsCardNew} handleCreateCard={handleCreateCard} />

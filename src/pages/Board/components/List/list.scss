@@ -13,26 +13,32 @@
   padding: 5px;
   border-radius: 10px;
 
-  .board-list-remove {
-    color: $primary-color;
-    background-color: $primary-background;
+  .board-list-btn-remove {
+    color: $secondary-color;
+    background-color: transparent;
     position: absolute;
-    top: 0;
+    top: 14px;
     right: 0;
     font-size: 20px;
     border-radius: 50%;
     border: 1px solid transparent;
   }
 
-  .board-list-remove:hover {
+  .board-list-btn-remove:hover {
     cursor: pointer;
+    color: $primary-color;
     background-color: $primary-background-element;
     border: 1px solid $secondary-color;
+  }
+
+  .board-list-tooltip-remove {
+    background-color: $secondary-background;
+    color: $primary-color;
   }
 }
 
 .board-list-title {
-  margin: 6px;
+  margin: 6px 24px 6px 6px;
   display: flex;
   flex-direction: column;
   border: 1px solid $primary-background;

@@ -4,6 +4,7 @@ import { IUpdateCard } from '../../../../common/interfaces';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Tooltip } from 'react-tooltip';
 import './card.scss';
 
 type CardTitleProps = {
@@ -12,6 +13,7 @@ type CardTitleProps = {
   cardId: number;
   title: string;
   handleUpdateCard: () => void;
+  handleRemoveCard: (cardId: number) => void;
 };
 
 export const Card = (props: CardTitleProps) => {
@@ -39,7 +41,7 @@ export const Card = (props: CardTitleProps) => {
     if (errors.length !== 0) {
       setErrors([]);
       setTitle(props.title);
-      toast.warning('Update card title canceled');
+      toast.warning('Оновленя карточки скасовано');
       return;
     }
     if (title.trim() === props.title) {
@@ -49,7 +51,7 @@ export const Card = (props: CardTitleProps) => {
       .then((result) => {
         if (result === 'Updated') {
           props.handleUpdateCard();
-          toast.success('Card updated');
+          toast.success('Карточку оновлено успішно');
         }
       })
       .catch((error) => {
@@ -67,19 +69,36 @@ export const Card = (props: CardTitleProps) => {
   };
 
   return (
-    <div className={`${readOnly ? 'board-card-readonly' : 'board-card-edit'} board-card`}>
-      <input
-        type={'text'}
-        value={title}
-        required
-        readOnly={readOnly}
-        autoFocus={!readOnly}
-        ref={inputRef}
-        onClick={() => setReadOnly(false)}
-        onChange={handleChangeTitle}
-        onBlur={handleOnBlurTitle}
-        onKeyUp={handleKeyUpEnter}
-      />
+    <div>
+      <div className={`${readOnly ? 'board-card-readonly' : 'board-card-edit'} board-card`}>
+        <button
+          data-tooltip-id="tooltip-remove-card"
+          type="button"
+          className="board-card-btn-remove"
+          aria-label="Видалити картку"
+          onClick={() => props.handleRemoveCard(props.cardId)}
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <Tooltip
+          id="tooltip-remove-card"
+          className="board-card-tooltip-remove"
+          content="Видалити картку!"
+          place="left"
+        />
+        <input
+          type={'text'}
+          value={title}
+          required
+          readOnly={readOnly}
+          autoFocus={!readOnly}
+          ref={inputRef}
+          onClick={() => setReadOnly(false)}
+          onChange={handleChangeTitle}
+          onBlur={handleOnBlurTitle}
+          onKeyUp={handleKeyUpEnter}
+        />
+      </div>
       <div className={'error'} hidden={errors.length === 0}>
         {errors.map((e) => (
           <p key={e}>{e}</p>

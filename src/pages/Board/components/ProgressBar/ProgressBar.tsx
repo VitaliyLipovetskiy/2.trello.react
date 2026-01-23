@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../../../api/request';
-import './progress-bar.scss';
 import { ToastContainer } from 'react-toastify';
+import './progress-bar.scss';
 
 export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
   const [showProgressBar, setShowProgressBar] = useState<boolean>(false);

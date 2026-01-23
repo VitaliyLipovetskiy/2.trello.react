@@ -3,6 +3,8 @@ export {
   createList,
   getAllBoards,
   getBoardById,
+  removeCardById,
+  removeListById,
   updateBoardById,
   updateListById,
   updateCardById,
