@@ -47,7 +47,7 @@ export const Home = () => {
         console.log(`Дошка ${board.title} не видалена`);
         toast.error(`Дошка ${board.title} не видалена`);
       }
-    }
+    };
     fetchData().catch((error) => {
       console.log(error);
       toast.error(error);
@@ -72,12 +72,7 @@ export const Home = () => {
                 >
                   &times;
                 </button>
-                <Tooltip
-                  id="tooltip-remove-board"
-                  className="tooltip"
-                  content="Видалити дошку!"
-                  place="left"
-                />
+                <Tooltip id="tooltip-remove-board" className="tooltip" content="Видалити дошку!" place="left" />
               </div>
             </Link>
           ))}
