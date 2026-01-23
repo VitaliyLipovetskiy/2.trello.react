@@ -1,3 +1,3 @@
 export interface IResult {
-    result: string,
+  result: string;
 }

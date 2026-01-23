@@ -1,4 +1,4 @@
 export interface ICreateList {
-    title: string,
-    position: number,
+  title: string;
+  position: number;
 }

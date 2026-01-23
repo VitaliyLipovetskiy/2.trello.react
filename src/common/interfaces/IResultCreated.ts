@@ -1,4 +1,4 @@
 export interface IResultCreated {
-    result: string,
-    id: number,
+  result: string;
+  id: number;
 }

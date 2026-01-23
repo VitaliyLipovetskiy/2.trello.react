@@ -19,7 +19,7 @@
     "react-router-dom": "^7.10.1",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
-    "sass": "^1.97.0",
+    "react-tooltip": "^5.30.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -51,7 +51,8 @@
   },
   "devDependencies": {
     "gh-pages": "^6.3.0",
-    "prettier": "3.7.4"
+    "prettier": "3.7.4",
+    "sass": "^1.97.2"
   },
   "homepage": "https://vitaliylipovetskiy.github.io/2.trello.react/"
 }

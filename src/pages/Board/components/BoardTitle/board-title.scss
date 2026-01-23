@@ -1,4 +1,4 @@
-@import './../../../../index';
+@use 'src/styles/mixins' as *;
 
 .board-title {
   display: flex;
@@ -24,4 +24,8 @@
   padding: 5px;
   font-size: 2em;
   font-weight: bold;
+}
+
+.board-title-create input {
+  text-align: left;
 }
