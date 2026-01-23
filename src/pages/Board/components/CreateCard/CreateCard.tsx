@@ -31,13 +31,6 @@ export const CreateCard = ({
     setErrors(titleErrors);
   };
 
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      handleCreateCard(title);
-      setDefaultValues();
-    }
-  };
-
   const handleAcceptCreateNewCard = (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setDefaultValues();
@@ -54,7 +47,7 @@ export const CreateCard = ({
   const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else {
+    } else if (e.relatedTarget.className !== 'card-btn-accept') {
       setDefaultValues();
     }
   };
@@ -72,7 +65,6 @@ export const CreateCard = ({
             autoFocus
             onChange={handleChangeTitle}
             onBlur={handleBlurTitle}
-            onKeyUp={handleKeyUpEnter}
           />
           <div className={'error'} hidden={errors.length === 0}>
             {errors.map((e) => (
@@ -81,7 +73,7 @@ export const CreateCard = ({
           </div>
           <div className={'board-card-btn'}>
             <button
-              className={'btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
+              className={'card-btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
               disabled={!(titleTouched && errors.length === 0)}
               onMouseDown={handleAcceptCreateNewCard}
             >

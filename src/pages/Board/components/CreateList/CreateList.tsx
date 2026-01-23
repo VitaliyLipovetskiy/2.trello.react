@@ -13,6 +13,7 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
   const [titleTouched, setTitleTouched] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isListNew) {
@@ -43,16 +44,15 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
   };
 
   const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleCreateList(title);
-      setDefaultValues();
+    if (e.key === 'Enter' && errors.length === 0) {
+      buttonRef.current?.focus();
     }
   };
 
   const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else {
+    } else if (e.relatedTarget.className !== 'list-btn-accept') {
       setDefaultValues();
     }
   };
@@ -80,9 +80,11 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
           </div>
           <div className={'board-list-btn'}>
             <button
-              className={'btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
+              className={'list-btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
               disabled={!(titleTouched && errors.length === 0)}
+              ref={buttonRef}
               onMouseDown={handleAcceptNewList}
+              onClick={handleAcceptNewList}
             >
               Додати список
             </button>

@@ -69,7 +69,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
     const { result } = await createCard(boardId, newCard);
     if (result === 'Created') {
       handleUpdateBoard();
-      toast.success('Рарточка створена успішно');
+      toast.success('Карточка створена успішно');
     } else {
       console.log('Карточка не створена');
       toast.error('Карточка не створена');

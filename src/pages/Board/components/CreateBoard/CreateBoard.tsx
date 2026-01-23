@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BoardTitle } from '../BoardTitle/BoardTitle';
 import './create-board.scss';
 
@@ -10,6 +10,7 @@ type CreateBoardProp = {
 export const CreateBoard = ({ onClose, handleCreateBoard }: CreateBoardProp) => {
   const [title, setTitle] = useState('');
   const [titleValid, setTitleValid] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -37,11 +38,18 @@ export const CreateBoard = ({ onClose, handleCreateBoard }: CreateBoardProp) => 
         </i>
         <h1>Створити дошку</h1>
         <label htmlFor={'title'}>Назва дошки*</label>
-        <BoardTitle setTitle={setTitle} setTitleValid={setTitleValid} className={'board-title-create'} />
+        <BoardTitle
+          className={'board-title-create'}
+          setTitle={setTitle}
+          setTitleValid={setTitleValid}
+          handleOnBlurTitle={() => buttonRef.current?.focus()}
+        />
         <button
           className={'btn-accept' + (titleValid ? '' : ' disabled')}
           disabled={!titleValid}
+          ref={buttonRef}
           onMouseDown={handleAcceptCreateBoard}
+          onClick={handleAcceptCreateBoard}
         >
           Створити
         </button>
