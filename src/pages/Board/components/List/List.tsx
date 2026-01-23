@@ -107,9 +107,9 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
         aria-label="Видалити список"
         onClick={handleRemoveList}
       >
-        <span aria-hidden="true">&times;</span>
+        &times;
       </button>
-      <Tooltip id="tooltip-remove-list" className="board-list-tooltip-remove" content="Видалити список!" place="left" />
+      <Tooltip id="tooltip-remove-list" className="tooltip" content="Видалити список!" place="left" />
       <div className={`${titleReadOnly ? 'board-list-title-readonly' : 'board-list-title-write'} board-list-title`}>
         <input
           name={'title'}

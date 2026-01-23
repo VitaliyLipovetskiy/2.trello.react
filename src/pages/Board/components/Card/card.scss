@@ -8,47 +8,43 @@
   margin-top: 3px;
   border-radius: 5px;
   font-size: 16px;
-  background-color: $primary-background-element;
-  border: 1px solid $primary-background-element;
+  border: 1px solid transparent;
   justify-content: center;
 
   input {
     padding: 10px;
     border-radius: 5px;
-    border: 1px solid $primary-background-element;
+    border: 1px solid transparent;
     background-color: $primary-background-element;
     color: $primary-color;
   }
 
   .board-card-btn-remove {
     color: $secondary-color;
-    background-color: $primary-background-element;
+    background-color: transparent;
     position: absolute;
-    right: 0;
-    font-size: 20px;
-    border-radius: 30%;
+    right: 3px;
+    font-size: 15px;
+    border-radius: 50%;
     border: 1px solid transparent;
   }
 
   .board-card-btn-remove:hover {
     cursor: pointer;
     color: $primary-color;
-    background-color: $primary-background;
+    background-color: $primary-background-element;
     border: 1px solid $secondary-color;
   }
 
-  .board-card-tooltip-remove {
-    background-color: $secondary-background;
-    color: $primary-color;
-  }
-
-  @include error;
+  @include tooltip;
 }
 
 .board-card:hover {
   cursor: pointer;
   border: 1px solid $primary-color;
 }
+
+@include error;
 
 .board-card-readonly input {
   display: block;

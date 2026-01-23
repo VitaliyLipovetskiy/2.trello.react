@@ -33,8 +33,8 @@ export const CreateBoard = ({ onClose, handleCreateBoard }: CreateBoardProp) => 
   return (
     <div className={'modal-crete-board'}>
       <div className={'modal-content'}>
-        <i className={'btn-close'} onClick={onClose} onKeyDown={onClose} tabIndex={-1} aria-hidden={true}>
-          X
+        <i className={'board-btn-close'} onClick={onClose} onKeyDown={onClose}>
+          &times;
         </i>
         <h1>Створити дошку</h1>
         <label htmlFor={'title'}>Назва дошки*</label>

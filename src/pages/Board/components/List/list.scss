@@ -18,8 +18,8 @@
     background-color: transparent;
     position: absolute;
     top: 14px;
-    right: 0;
-    font-size: 20px;
+    right: 3px;
+    font-size: 15px;
     border-radius: 50%;
     border: 1px solid transparent;
   }
@@ -31,10 +31,7 @@
     border: 1px solid $secondary-color;
   }
 
-  .board-list-tooltip-remove {
-    background-color: $secondary-background;
-    color: $primary-color;
-  }
+  @include tooltip;
 }
 
 .board-list-title {

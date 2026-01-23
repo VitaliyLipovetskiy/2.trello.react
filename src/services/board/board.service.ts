@@ -26,6 +26,10 @@ export const updateBoardById = async (id: number, data: IUpdateBoard) => {
   return await api.put<any, IResult, any>(`board/${id}`, data);
 };
 
+export const removeBoardById = async (id: number) => {
+  return await api.delete<any, IResult, any>(`board/${id}`);
+};
+
 export const createList = async (id: number, data: ICreateList) => {
   return await api.post<any, IResult, any>(`board/${id}/list`, data);
 };

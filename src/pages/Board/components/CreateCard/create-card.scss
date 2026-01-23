@@ -42,28 +42,30 @@
       .card-btn-accept {
         background-color: $secondary-background;
         color: white;
-
-        :hover {
-          cursor: pointer;
-          background-color: $secondary-background-hover;
-        }
-
-        .disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
       }
 
-      .btn-close {
+      .card-btn-accept:hover {
+        cursor: pointer;
+        background-color: $secondary-background-hover;
+      }
+
+      .card-btn-accept.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .card-btn-close {
         background-color: $primary-background;
         color: $primary-color;
-
-        :hover {
-          color: $primary-color;
-          cursor: pointer;
-          background-color: #3b3b3b;
-        }
       }
+
+      .card-btn-close:hover {
+        color: $primary-color;
+        cursor: pointer;
+        background-color: #3b3b3b;
+      }
+
+      @include tooltip;
     }
   }
 
@@ -77,10 +79,10 @@
     background-color: $primary-background;
     border: none;
     border-radius: 10px;
+  }
 
-    :hover {
-      cursor: pointer;
-      background-color: $secondary-color;
-    }
+  .board-card-add-btn:hover {
+    cursor: pointer;
+    background-color: $secondary-color;
   }
 }

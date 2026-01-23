@@ -10,11 +10,11 @@ import './board.scss';
 export const Board = () => {
   const { id } = useParams();
   const [board, setBoard] = useState<IBoard>();
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(board?.title || '');
   const [titleValid, setTitleValid] = useState(true);
   const [titleReadOnly, setTitleReadOnly] = useState(true);
   const [isListNew, setIsListNew] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState(board?.custom?.background);
+  const [backgroundColor, setBackgroundColor] = useState(board?.custom?.background || '');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const Board = () => {
       const iBoard = await getBoardById(+(id || 0));
       setBoard(iBoard);
       setTitle(iBoard.title);
-      setBackgroundColor(iBoard.custom?.background);
+      setBackgroundColor(iBoard.custom?.background || '');
     };
     fetchData().catch((error) => {
       console.log(error);
@@ -34,7 +34,6 @@ export const Board = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsListNew(false);
-        toast.warning('List creation cancelled');
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -102,7 +101,7 @@ export const Board = () => {
         if (result === 'Updated') {
           const board = await getBoardById(+(id || 0));
           setBoard(board);
-          setBackgroundColor(board.custom?.background);
+          setBackgroundColor(board.custom?.background || '');
           toast.success('Дошку оновлено успішно');
           console.log('Дошку оновлено успішно');
         }

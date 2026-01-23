@@ -1,12 +1,12 @@
-@use './variables';
+@use './variables' as *;
 
 @mixin button {
   button {
     width: 100%;
     padding: 10px;
-    background-color: variables.$primary-background;
-    border: 1px solid variables.$primary-background;
-    color: variables.$primary-color;
+    background-color: $primary-background;
+    border: 1px solid $primary-background;
+    color: $primary-color;
     font-size: 16px;
     border-radius: 5px;
     text-align: left;
@@ -14,8 +14,8 @@
 
   button:hover {
     cursor: pointer;
-    background-color: variables.$secondary-background;
-    border: 1px solid variables.$primary-color;
+    background-color: $secondary-background;
+    border: 1px solid $primary-color;
   }
 }
 
@@ -24,5 +24,12 @@
     margin: 0;
     color: red;
     font-size: 12px;
+  }
+}
+
+@mixin tooltip {
+  .tooltip {
+    background-color: $secondary-background;
+    color: $primary-color;
   }
 }

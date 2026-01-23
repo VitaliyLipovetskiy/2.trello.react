@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { validateTitle } from '../../../../utils/validates';
 import './create-list.scss';
+import { Tooltip } from 'react-tooltip';
 
 type CreateListProps = {
   isListNew: boolean;
@@ -47,6 +48,9 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
     if (e.key === 'Enter' && errors.length === 0) {
       buttonRef.current?.focus();
     }
+    if (e.key === 'Escape') {
+      setDefaultValues();
+    }
   };
 
   const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -88,8 +92,18 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
             >
               Додати список
             </button>
-            <button className={'btn-close'} onMouseDown={() => setDefaultValues()}>
-              X
+            <Tooltip
+              id="tooltip-update-list-title"
+              className="tooltip"
+              content="Скасувати зміну назви списку!"
+              place="left"
+            />
+            <button
+              data-tooltip-id="tooltip-update-list-title"
+              className={'list-btn-close'}
+              onMouseDown={() => setDefaultValues()}
+            >
+              &times;
             </button>
           </div>
         </div>

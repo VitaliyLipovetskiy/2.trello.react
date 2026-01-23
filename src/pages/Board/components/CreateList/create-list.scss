@@ -61,28 +61,30 @@
       .list-btn-accept {
         background-color: $secondary-background;
         color: white;
-
-        :hover {
-          cursor: pointer;
-          background-color: $secondary-background-hover;
-        }
       }
 
-      .btn-close {
+      .list-btn-accept:hover {
+        cursor: pointer;
+        background-color: $secondary-background-hover;
+      }
+
+      .list-btn-accept.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .list-btn-close {
         background-color: $primary-background;
         color: $primary-color;
-
-        :hover {
-          color: $primary-color;
-          cursor: pointer;
-          background-color: #3b3b3b;
-        }
-
-        .disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
       }
+
+      .list-btn-close:hover {
+        color: $primary-color;
+        cursor: pointer;
+        background-color: #3b3b3b;
+      }
+
+      @include tooltip;
     }
   }
 }

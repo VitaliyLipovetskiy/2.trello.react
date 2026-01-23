@@ -1,4 +1,5 @@
 @use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
 
 .home {
   display: flex;
@@ -29,10 +30,31 @@
     }
 
     .home-board {
+      position: relative;
       height: 130px;
       border: 1px solid $secondary-color;
       padding: 10px;
       border-radius: 15px;
+
+      .board-btn-remove {
+        color: $secondary-color;
+        background-color: transparent;
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        font-size: 15px;
+        border-radius: 50%;
+        border: 1px solid transparent;
+      }
+
+      .board-btn-remove:hover {
+        cursor: pointer;
+        color: $primary-color;
+        background-color: $primary-background-element;
+        border: 1px solid $secondary-color;
+      }
+
+      @include tooltip;
     }
   }
 }

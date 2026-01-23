@@ -39,9 +39,8 @@ export const Card = (props: CardTitleProps) => {
 
   const handleOnBlurTitle = () => {
     if (errors.length !== 0) {
-      setErrors([]);
-      setTitle(props.title);
-      toast.warning('Оновленя карточки скасовано');
+      setDefaultValues();
+      toast.warning('Оновлення карточки скасовано');
       return;
     }
     if (title.trim() === props.title) {
@@ -62,10 +61,17 @@ export const Card = (props: CardTitleProps) => {
 
   const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
+      inputRef.current?.blur();
     }
+    if (e.key === 'Escape') {
+      setDefaultValues();
+    }
+  };
+
+  const setDefaultValues = () => {
+    setTitle(props.title);
+    setErrors([]);
+    setReadOnly(true);
   };
 
   return (
@@ -78,14 +84,9 @@ export const Card = (props: CardTitleProps) => {
           aria-label="Видалити картку"
           onClick={() => props.handleRemoveCard(props.cardId)}
         >
-          <span aria-hidden="true">&times;</span>
+          &times;
         </button>
-        <Tooltip
-          id="tooltip-remove-card"
-          className="board-card-tooltip-remove"
-          content="Видалити картку!"
-          place="left"
-        />
+        <Tooltip id="tooltip-remove-card" className="tooltip" content="Видалити картку!" place="left" />
         <input
           type={'text'}
           value={title}

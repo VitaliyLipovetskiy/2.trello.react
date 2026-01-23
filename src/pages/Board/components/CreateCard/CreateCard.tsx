@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { validateTitle } from '../../../../utils/validates';
 import './create-card.scss';
+import { Tooltip } from 'react-tooltip';
 
 export const CreateCard = ({
   isCardNew,
@@ -44,6 +45,12 @@ export const CreateCard = ({
     setIsCardNew(false);
   };
 
+  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape') {
+      setDefaultValues();
+    }
+  };
+
   const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
@@ -64,6 +71,7 @@ export const CreateCard = ({
             required
             autoFocus
             onChange={handleChangeTitle}
+            onKeyUp={handleKeyUpEnter}
             onBlur={handleBlurTitle}
           />
           <div className={'error'} hidden={errors.length === 0}>
@@ -79,8 +87,13 @@ export const CreateCard = ({
             >
               Додати картку
             </button>
-            <button className={'btn-close'} onMouseDown={() => setDefaultValues()}>
-              X
+            <Tooltip id="tooltip-create-card" className="tooltip" content="Скасувати створення картки!" place="left" />
+            <button
+              data-tooltip-id="tooltip-create-card"
+              className={'card-btn-close'}
+              onMouseDown={() => setDefaultValues()}
+            >
+              &times;
             </button>
           </div>
         </div>
