@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { IBoardList, ICreateCard } from '../../../../common/interfaces';
 import { Card } from '../Card/Card';
 import { CreateCard } from '../components';
-import { createCard, removeCardById, removeListById, updateListById } from '../../../../services/board/board.service';
+import boardService from '../../../../services/board/board.service';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
@@ -35,20 +35,25 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
       setTitle(list.title);
       toast.warning('Оновлення списка скасовано');
     } else if (list.title !== title.trim()) {
-      const fetchData = async () => {
-        const { result } = await updateListById(boardId, list.id, { title: title.trim() });
-        if (result === 'Updated') {
-          handleUpdateBoard();
-          toast.success('Назва списка оновлена успішно');
-        } else {
-          console.log('Назва списка не оновлена');
-          toast.error('Назва списка не оновлена');
+      (async () => {
+        try {
+          const { result } = await boardService.updateListById(boardId, list.id, { title: title.trim() });
+          if (result === 'Updated') {
+            handleUpdateBoard();
+            toast.success('Назва списка оновлена успішно');
+          } else {
+            console.log('Назва списка не оновлена');
+            toast.error('Назва списка не оновлена');
+          }
+        } catch (error) {
+          console.log(error);
+          if (error instanceof Error) {
+            toast.error(error.message);
+          } else {
+            throw error;
+          }
         }
-      };
-      fetchData().catch((error) => {
-        console.log(error);
-        toast.error(error);
-      });
+      })();
     }
   };
 
@@ -66,7 +71,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
       list_id: list.id,
       position: list.cards.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
     };
-    const { result } = await createCard(boardId, newCard);
+    const { result } = await boardService.createCard(boardId, newCard);
     if (result === 'Created') {
       handleUpdateBoard();
       toast.success('Карточка створена успішно');
@@ -77,7 +82,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
   };
 
   const handleRemoveCard = async (cardId: number) => {
-    const { result } = await removeCardById(boardId, cardId);
+    const { result } = await boardService.removeCardById(boardId, cardId);
     if (result === 'Deleted') {
       handleUpdateBoard();
       toast.success('Карточка видалена успішно');
@@ -88,7 +93,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
   };
 
   const handleRemoveList = async () => {
-    const { result } = await removeListById(boardId, list.id);
+    const { result } = await boardService.removeListById(boardId, list.id);
     if (result === 'Deleted') {
       handleUpdateBoard();
       toast.success('Список видалений успішно');

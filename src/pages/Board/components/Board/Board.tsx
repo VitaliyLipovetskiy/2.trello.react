@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BoardTitle, CreateList, List, ProgressBar } from '../components';
 import { IBoard, ICreateList } from '../../../../common/interfaces';
-import { createList, getBoardById, updateBoardById } from '../../../../services/services';
-import { toast } from 'react-toastify';
+import boardService from '../../../../services/board/board.service';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './board.scss';
 
@@ -18,16 +18,19 @@ export const Board = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const iBoard = await getBoardById(+(id || 0));
-      setBoard(iBoard);
-      setTitle(iBoard.title);
-      setBackgroundColor(iBoard.custom?.background || '');
-    };
-    fetchData().catch((error) => {
-      console.log(error);
-      toast.error(error);
-    });
+    (async () => {
+      try {
+        const iBoard = await boardService.getBoardById(+(id || 0));
+        setBoard(iBoard);
+        setTitle(iBoard.title);
+        setBackgroundColor(iBoard.custom?.background || '');
+      } catch (error) {
+        console.log(error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        }
+      }
+    })();
   }, [id]);
 
   useEffect(() => {
@@ -48,19 +51,24 @@ export const Board = () => {
       setTitle(board?.title || '');
       toast.warning('Назва дошки не оновлена');
     } else if (board?.title !== title.trim()) {
-      const fetchData = async () => {
-        const { result } = await updateBoardById(+(id || 0), { title });
-        if (result === 'Updated') {
-          const board = await getBoardById(+(id || 0));
-          setBoard(board);
-          setTitle(board.title);
-          toast.success('Дошку оновлено успішно');
+      (async () => {
+        try {
+          const { result } = await boardService.updateBoardById(+(id || 0), { title });
+          if (result === 'Updated') {
+            const board = await boardService.getBoardById(+(id || 0));
+            setBoard(board);
+            setTitle(board.title);
+            toast.success('Дошку оновлено успішно');
+          }
+        } catch (error) {
+          console.log(error);
+          if (error instanceof Error) {
+            toast.error(error.message);
+          } else {
+            throw error;
+          }
         }
-      };
-      fetchData().catch((error) => {
-        console.log(error);
-        toast.error(error);
-      });
+      })();
     }
   };
 
@@ -69,9 +77,9 @@ export const Board = () => {
       title,
       position: (board?.lists.length || 0) + 1,
     };
-    const { result } = await createList(+(id || 0), listData);
+    const { result } = await boardService.createList(+(id || 0), listData);
     if (result === 'Created') {
-      const board = await getBoardById(+(id || 0));
+      const board = await boardService.getBoardById(+(id || 0));
       setBoard(board);
       toast.success('Список створено успішно');
     } else {
@@ -80,36 +88,45 @@ export const Board = () => {
     }
   };
 
-  const updateBoard = async () => {
-    return await getBoardById(+(id || 0));
-  };
-
   const handleUpdateBoard = () => {
-    updateBoard()
-      .then((board) => setBoard(board))
-      .catch((error) => {
+    (async () => {
+      try {
+        const iBoard = await boardService.getBoardById(+(id || 0));
+        setBoard(iBoard);
+      } catch (error) {
         console.log(error);
-        toast.error(error);
-      });
+        if (error instanceof Error) {
+          toast.error(error.message);
+        }
+      }
+    })();
   };
 
   const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setBackgroundColor(event.target.value);
     if (event.target.value !== board?.custom?.background) {
-      const fetchData = async () => {
-        const { result } = await updateBoardById(+(id || 0), { title, custom: { background: event.target.value } });
-        if (result === 'Updated') {
-          const board = await getBoardById(+(id || 0));
-          setBoard(board);
-          setBackgroundColor(board.custom?.background || '');
-          toast.success('Дошку оновлено успішно');
-          console.log('Дошку оновлено успішно');
+      (async () => {
+        try {
+          const { result } = await boardService.updateBoardById(+(id || 0), {
+            title,
+            custom: { background: event.target.value },
+          });
+          if (result === 'Updated') {
+            const board = await boardService.getBoardById(+(id || 0));
+            setBoard(board);
+            setBackgroundColor(board.custom?.background || '');
+            toast.success('Дошку оновлено успішно');
+            console.log('Дошку оновлено успішно');
+          }
+        } catch (error) {
+          console.log(error);
+          if (error instanceof Error) {
+            toast.error(error.message);
+          } else {
+            throw error;
+          }
         }
-      };
-      fetchData().catch((error) => {
-        console.log(error);
-        toast.error(error);
-      });
+      })();
     }
   };
 
@@ -155,6 +172,7 @@ export const Board = () => {
           <CreateList isListNew={isListNew} setIsListNew={setIsListNew} handleCreateList={handleCreateList} />
         </div>
       </div>
+      <ToastContainer />
     </ProgressBar>
   );
 };

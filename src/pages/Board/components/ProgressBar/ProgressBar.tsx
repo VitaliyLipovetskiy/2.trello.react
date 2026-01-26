@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../../../api/request';
-import { ToastContainer } from 'react-toastify';
 import './progress-bar.scss';
 
 export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
@@ -36,7 +35,6 @@ export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
     <>
       {showProgressBar && <div className="loader"></div>}
       {children}
-      <ToastContainer />
     </>
   );
 };

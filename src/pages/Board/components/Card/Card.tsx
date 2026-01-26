@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { updateCardById } from '../../../../services/services';
+import boardService from '../../../../services/board/board.service';
 import { IUpdateCard } from '../../../../common/interfaces';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
@@ -28,15 +28,6 @@ export const Card = (props: CardTitleProps) => {
     setErrors(titleErrors);
   };
 
-  const updateCard = async () => {
-    const cardData: IUpdateCard = {
-      title: title.trim(),
-      list_id: props.listId,
-    };
-    let { result } = await updateCardById(props.boardId, props.cardId, cardData);
-    return result;
-  };
-
   const handleOnBlurTitle = () => {
     if (errors.length !== 0) {
       setDefaultValues();
@@ -46,17 +37,26 @@ export const Card = (props: CardTitleProps) => {
     if (title.trim() === props.title) {
       return;
     }
-    updateCard()
-      .then((result) => {
+    const cardData: IUpdateCard = {
+      title: title.trim(),
+      list_id: props.listId,
+    };
+    (async () => {
+      try {
+        let { result } = await boardService.updateCardById(props.boardId, props.cardId, cardData);
         if (result === 'Updated') {
           props.handleUpdateCard();
           toast.success('Карточку оновлено успішно');
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.log(error);
-        toast.error(error);
-      });
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          throw error;
+        }
+      }
+    })();
   };
 
   const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {

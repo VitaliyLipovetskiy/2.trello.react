@@ -10,46 +10,62 @@ import {
   IUpdateList,
 } from '../../common/interfaces';
 
-export const getAllBoards = () => {
+const getAllBoards = () => {
   return api.get<any, { boards: IBoard[] }, any>('board');
 };
 
-export const getBoardById = async (id: number) => {
+const getBoardById = async (id: number) => {
   return await api.get<any, IBoard, any>(`board/${id}`);
 };
 
-export const createBoard = async (title: string) => {
+const createBoard = async (title: string) => {
   return await api.post<any, IResultCreated, any>('board', { title });
 };
 
-export const updateBoardById = async (id: number, data: IUpdateBoard) => {
+const updateBoardById = async (id: number, data: IUpdateBoard) => {
   return await api.put<any, IResult, any>(`board/${id}`, data);
 };
 
-export const removeBoardById = async (id: number) => {
+const removeBoardById = async (id: number) => {
   return await api.delete<any, IResult, any>(`board/${id}`);
 };
 
-export const createList = async (id: number, data: ICreateList) => {
+const createList = async (id: number, data: ICreateList) => {
   return await api.post<any, IResult, any>(`board/${id}/list`, data);
 };
 
-export const updateListById = async (boardId: number, listId: number, data: IUpdateList) => {
+const updateListById = async (boardId: number, listId: number, data: IUpdateList) => {
   return await api.put<any, IResult, any>(`board/${boardId}/list/${listId}`, data);
 };
 
-export const removeListById = async (boardId: number, listId: number) => {
+const removeListById = async (boardId: number, listId: number) => {
   return await api.delete<any, IResult, any>(`board/${boardId}/list/${listId}`);
 };
 
-export const createCard = async (boardId: number, data: ICreateCard) => {
+const createCard = async (boardId: number, data: ICreateCard) => {
   return await api.post<any, IResultCreated, any>(`board/${boardId}/card`, data);
 };
 
-export const updateCardById = async (boardId: number, cardId: number, data: IUpdateCard) => {
+const updateCardById = async (boardId: number, cardId: number, data: IUpdateCard) => {
   return await api.put<any, IResult, any>(`board/${boardId}/card/${cardId}`, data);
 };
 
-export const removeCardById = async (boardId: number, cardId: number) => {
+const removeCardById = async (boardId: number, cardId: number) => {
   return await api.delete<any, IResult, any>(`board/${boardId}/card/${cardId}`);
 };
+
+const boardService = {
+  getAllBoards,
+  getBoardById,
+  createBoard,
+  updateBoardById,
+  removeBoardById,
+  createList,
+  updateListById,
+  removeListById,
+  createCard,
+  updateCardById,
+  removeCardById,
+};
+
+export default boardService;
