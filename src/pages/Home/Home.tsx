@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { CreateBoard, ProgressBar } from '../../../Board/components/components';
+import { CreateBoard } from './components';
 import { Link } from 'react-router-dom';
-import { IBoard } from '../../../../common/interfaces';
-import boardService from '../../../../services/board/board.service';
+import { IBoard } from '../../common/interfaces';
+import boardService from '../../services/board/board.service';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './home.scss';
 import { Tooltip } from 'react-tooltip';
+import { ProgressBar } from "../../common/components";
 
-export const Home = () => {
+const Home = () => {
   const [boards, setBoards] = useState<IBoard[]>([]);
   const [boardModal, setBoardModal] = useState(false);
 
@@ -94,3 +95,5 @@ export const Home = () => {
     </ProgressBar>
   );
 };
+
+export default Home;

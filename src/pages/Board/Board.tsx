@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BoardTitle, CreateList, List, ProgressBar } from '../components';
-import { IBoard, ICreateList } from '../../../../common/interfaces';
-import boardService from '../../../../services/board/board.service';
+import { BoardTitle, CreateList, List } from './components';
+import { IBoard, ICreateList } from '../../common/interfaces';
+import boardService from '../../services/board/board.service';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './board.scss';
+import { ProgressBar } from "../../common/components";
 
-export const Board = () => {
+const Board = () => {
   const { id } = useParams();
   const [board, setBoard] = useState<IBoard>();
   const [title, setTitle] = useState(board?.title || '');
@@ -176,3 +177,5 @@ export const Board = () => {
     </ProgressBar>
   );
 };
+
+export default Board;

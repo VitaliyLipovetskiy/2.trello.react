@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BoardTitle } from '../BoardTitle/BoardTitle';
+import { BoardTitle } from '../../../Board/components/BoardTitle/BoardTitle';
 import './create-board.scss';
 
 type CreateBoardProp = {

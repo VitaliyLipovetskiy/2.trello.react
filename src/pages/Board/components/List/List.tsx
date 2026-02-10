@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { IBoardList, ICreateCard } from '../../../../common/interfaces';
 import { Card } from '../Card/Card';
-import { CreateCard } from '../components';
+import { CreateCard } from '../CreateCard/CreateCard';
 import boardService from '../../../../services/board/board.service';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';

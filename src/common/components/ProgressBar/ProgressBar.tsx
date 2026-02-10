@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../../../api/request';
+import api from '../../../api/request';
 import './progress-bar.scss';
 
 export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
