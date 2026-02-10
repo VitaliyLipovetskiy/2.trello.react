@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { CreateBoard } from './components';
+import { Board, BoardCreate } from './components';
 import { Link } from 'react-router-dom';
 import { IBoard } from '../../common/interfaces';
 import boardService from '../../services/board/board.service';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './home.scss';
-import { Tooltip } from 'react-tooltip';
-import { ProgressBar } from "../../common/components";
+import s from './home.module.scss';
+import { ProgressBar } from '../../common/components';
 
 const Home = () => {
   const [boards, setBoards] = useState<IBoard[]>([]);
@@ -65,31 +64,19 @@ const Home = () => {
 
   return (
     <ProgressBar>
-      <div className={'home'}>
+      <div className={s.home}>
         <h1>Мої дошки</h1>
-        <div className={'container'}>
+        <div className={s.container}>
           {boards?.map((board) => (
-            <Link key={board.id} to={'/board/' + board.id}>
-              <div className={'home-board'} style={{ background: board.custom?.background }}>
-                <h4>{board.title}</h4>
-                <button
-                  data-tooltip-id="tooltip-remove-board"
-                  type="button"
-                  className="board-btn-remove"
-                  aria-label="Видалити дошку"
-                  onClick={(event) => handleRemoveBoard(event, board)}
-                >
-                  &times;
-                </button>
-                <Tooltip id="tooltip-remove-board" className="tooltip" content="Видалити дошку!" place="left" />
-              </div>
+            <Link key={board.id} to={`/board/${board.id}`}>
+              <Board board={board} handleRemoveBoard={handleRemoveBoard} />
             </Link>
           ))}
-          <button className={'board-add'} onClick={() => setBoardModal(true)}>
+          <button className={s.board__add} onClick={() => setBoardModal(true)}>
             + Додати дошку
           </button>
         </div>
-        {boardModal && <CreateBoard onClose={() => setBoardModal(false)} handleCreateBoard={handleCreateBoard} />}
+        {boardModal && <BoardCreate onClose={() => setBoardModal(false)} handleCreateBoard={handleCreateBoard} />}
       </div>
       <ToastContainer />
     </ProgressBar>

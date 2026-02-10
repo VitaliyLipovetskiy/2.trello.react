@@ -1,0 +1,89 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+.list_add {
+  display: flex;
+  flex-direction: column;
+  min-width: 260px;
+  background-color: $primary-background;
+  border: none;
+  margin: 5px;
+  border-radius: 10px;
+}
+
+.list_new {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 10px;
+  padding: 5px;
+
+  & input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid $secondary-background;
+    background: $primary-background-element;
+    color: $primary-color;
+    font-size: 16px;
+  }
+}
+
+@include error;
+@include tooltip;
+
+.list__btn {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+
+  button {
+    padding: 5px 10px 5px 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    border: none;
+  }
+
+  & .list__btn_accept {
+    background-color: $secondary-background;
+    color: white;
+
+    &:hover {
+      cursor: pointer;
+      background-color: $secondary-background-hover;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  & .list__btn_close {
+    background-color: $primary-background;
+    color: $primary-color;
+
+    &:hover {
+      color: $primary-color;
+      cursor: pointer;
+      background-color: #3b3b3b;
+    }
+  }
+}
+
+.list__btn_add {
+  display: flex;
+  flex-direction: row;
+  min-width: 260px;
+  padding: 10px;
+  font-size: 16px;
+  align-items: center;
+  color: $secondary-background;
+  background-color: rgba(255, 254, 254, 0.88);
+  border: none;
+  border-radius: 10px;
+
+  &:hover {
+    cursor: pointer;
+    background-color: $secondary-color;
+  }
+}

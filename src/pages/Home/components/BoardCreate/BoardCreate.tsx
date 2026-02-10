@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BoardTitle } from '../../../Board/components/BoardTitle/BoardTitle';
-import './create-board.scss';
+import { BoardTitle } from '../../../Board/components';
+import s from './board-create.module.scss';
 
 type CreateBoardProp = {
   onClose: () => void;
   handleCreateBoard: (title: string) => void;
 };
 
-export const CreateBoard = ({ onClose, handleCreateBoard }: CreateBoardProp) => {
+export const BoardCreate = ({ onClose, handleCreateBoard }: CreateBoardProp) => {
   const [title, setTitle] = useState('');
   const [titleValid, setTitleValid] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -31,21 +31,22 @@ export const CreateBoard = ({ onClose, handleCreateBoard }: CreateBoardProp) => 
   };
 
   return (
-    <div className={'modal-crete-board'}>
-      <div className={'modal-content'}>
-        <i className={'board-btn-close'} onClick={onClose} onKeyDown={onClose}>
-          &times;
-        </i>
+    <div className={s.crete}>
+      <div className={s.content}>
+        <button className={s.btn__close} onClick={onClose} onKeyDown={onClose}>
+          <span></span>
+          <span></span>
+        </button>
         <h1>Створити дошку</h1>
         <label htmlFor={'title'}>Назва дошки*</label>
         <BoardTitle
-          className={'board-title-create'}
+          className={s.title_create}
           setTitle={setTitle}
           setTitleValid={setTitleValid}
           handleOnBlurTitle={() => buttonRef.current?.focus()}
         />
         <button
-          className={'btn-accept' + (titleValid ? '' : ' disabled')}
+          className={s.btn__accept + (titleValid ? '' : ' disabled')}
           disabled={!titleValid}
           ref={buttonRef}
           onMouseDown={handleAcceptCreateBoard}

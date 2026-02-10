@@ -1,13 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { IBoardList, ICreateCard } from '../../../../common/interfaces';
 import { Card } from '../Card/Card';
-import { CreateCard } from '../CreateCard/CreateCard';
+import { CardCreate } from '../CardCreate/CardCreate';
 import boardService from '../../../../services/board/board.service';
 import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
 import 'react-toastify/dist/ReactToastify.css';
-import './list.scss';
+import s from './list.module.scss';
 
 type ListProps = {
   boardId: number;
@@ -104,18 +104,13 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
   };
 
   return (
-    <div className={'board-list'}>
-      <button
-        data-tooltip-id="tooltip-remove-list"
-        type="button"
-        className="board-list-btn-remove"
-        aria-label="Видалити список"
-        onClick={handleRemoveList}
-      >
-        &times;
+    <div className={s.list}>
+      <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleRemoveList}>
+        <span></span>
+        <span></span>
       </button>
-      <Tooltip id="tooltip-remove-list" className="tooltip" content="Видалити список!" place="left" />
-      <div className={`${titleReadOnly ? 'board-list-title-readonly' : 'board-list-title-write'} board-list-title`}>
+      <Tooltip id="tooltip-remove-list" className={s.tooltip} content="Видалити список!" place="left" />
+      <div className={`${titleReadOnly ? s.list_title_readonly : s.list_title_write} ${s.list_title}`}>
         <input
           name={'title'}
           type={'text'}
@@ -129,7 +124,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
           onBlur={handleOnBlurTitle}
           onKeyUp={handleKeyUpEnter}
         />
-        <div className={'error'} hidden={errors.length === 0}>
+        <div className={s.error} hidden={errors.length === 0}>
           {errors.map((e) => (
             <p key={e}>{e}</p>
           ))}
@@ -146,7 +141,7 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
           handleRemoveCard={handleRemoveCard}
         />
       ))}
-      <CreateCard isCardNew={isCardNew} setIsCardNew={setIsCardNew} handleCreateCard={handleCreateCard} />
+      <CardCreate isCardNew={isCardNew} setIsCardNew={setIsCardNew} handleCreateCard={handleCreateCard} />
     </div>
   );
 };

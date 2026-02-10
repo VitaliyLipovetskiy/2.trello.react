@@ -1,0 +1,13 @@
+@use 'src/styles/mixins' as *;
+
+@include error;
+
+.title {
+  display: flex;
+  flex-direction: column;
+
+  & input {
+    padding: 10px;
+    text-align: center;
+  }
+}

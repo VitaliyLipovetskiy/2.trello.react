@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { validateTitle } from '../../../../utils/validates';
-import './create-list.scss';
 import { Tooltip } from 'react-tooltip';
+import s from './list-create.module.scss';
 
 type CreateListProps = {
   isListNew: boolean;
@@ -9,7 +9,7 @@ type CreateListProps = {
   handleCreateList: (name: string) => void;
 };
 
-export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: CreateListProps) => {
+export const ListCreate = ({ isListNew, setIsListNew, handleCreateList }: CreateListProps) => {
   const [title, setTitle] = useState('');
   const [titleTouched, setTitleTouched] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -56,17 +56,17 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
   const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else if (e.relatedTarget.className !== 'list-btn-accept') {
+    } else if (e.relatedTarget.className !== 'list__btn_accept') {
       setDefaultValues();
     }
   };
 
   return (
-    <div className={'board-list-add'}>
+    <div className={s.list_add}>
       {isListNew ? (
-        <div className={'board-list-new'}>
+        <div className={s.list_new}>
           <input
-            className={'board-list-new-input'}
+            // className={'board-list-new-input'}
             name={'listTitle'}
             type={'text'}
             value={title}
@@ -77,14 +77,14 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
             onKeyUp={handleKeyUpEnter}
             onBlur={handleBlurTitle}
           />
-          <div className={'error'} hidden={errors.length === 0}>
+          <div className={s.error} hidden={errors.length === 0}>
             {errors.map((e) => (
               <p key={e}>{e}</p>
             ))}
           </div>
-          <div className={'board-list-btn'}>
+          <div className={s.list__btn}>
             <button
-              className={'list-btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
+              className={s.list__btn_accept + (titleTouched && errors.length === 0 ? '' : ' disabled')}
               disabled={!(titleTouched && errors.length === 0)}
               ref={buttonRef}
               onMouseDown={handleAcceptNewList}
@@ -94,13 +94,13 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
             </button>
             <Tooltip
               id="tooltip-update-list-title"
-              className="tooltip"
+              className={s.tooltip}
               content="Скасувати зміну назви списку!"
               place="left"
             />
             <button
               data-tooltip-id="tooltip-update-list-title"
-              className={'list-btn-close'}
+              className={s.list__btn_close}
               onMouseDown={() => setDefaultValues()}
             >
               &times;
@@ -108,7 +108,7 @@ export const CreateList = ({ isListNew, setIsListNew, handleCreateList }: Create
           </div>
         </div>
       ) : (
-        <button className={'board-list-add-btn'} onClick={() => setIsListNew(true)}>
+        <button className={s.list__btn_add} onClick={() => setIsListNew(true)}>
           + Додайте ще один список
         </button>
       )}

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BoardTitle, CreateList, List } from './components';
+import { BoardTitle, ListCreate, List } from './components';
 import { IBoard, ICreateList } from '../../common/interfaces';
 import boardService from '../../services/board/board.service';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './board.scss';
-import { ProgressBar } from "../../common/components";
+import { ProgressBar } from '../../common/components';
+import s from './board.module.scss';
 
 const Board = () => {
   const { id } = useParams();
@@ -133,44 +133,44 @@ const Board = () => {
 
   return (
     <ProgressBar>
-      <div className={'board'}>
+      <div className={s.board}>
         <header>
-          <div className={'board-header'}>
-            <div className={'board-content'}>
+          <div className={s.header}>
+            <div className={s.content}>
               <BoardTitle
                 title={title}
                 setTitle={setTitle}
                 setTitleValid={setTitleValid}
                 readonly={titleReadOnly}
-                className={titleReadOnly ? 'board-title-readonly' : 'board-title-edit'}
+                className={titleReadOnly ? s.title_readonly : s.title_edit}
                 handleClickTitle={() => setTitleReadOnly(false)}
                 handleOnBlurTitle={handleOnBlurTitle}
               />
             </div>
-            <div className={'board-home'}>
+            <div className={s.home}>
               <Link to={'/'}>{'<-Додому'}</Link>
             </div>
-            <div className={'color-picker-wrapper'}>
+            <div className={s.color_picker_wrapper}>
               <input
                 type="color"
-                className={'board-color-input'}
+                className={s.color_input}
                 ref={inputRef}
                 value={backgroundColor}
                 onChange={handleColorChange}
               ></input>
               <button
-                className="board-color-swatch"
+                className={s.color_swatch}
                 style={{ backgroundColor: backgroundColor }}
                 onClick={() => inputRef.current?.click()}
               />
             </div>
           </div>
         </header>
-        <div className={'board-container'}>
+        <div className={s.container}>
           {board?.lists.map((list) => (
             <List key={list.id} boardId={+(id || 0)} list={list} handleUpdateBoard={handleUpdateBoard} />
           ))}
-          <CreateList isListNew={isListNew} setIsListNew={setIsListNew} handleCreateList={handleCreateList} />
+          <ListCreate isListNew={isListNew} setIsListNew={setIsListNew} handleCreateList={handleCreateList} />
         </div>
       </div>
       <ToastContainer />

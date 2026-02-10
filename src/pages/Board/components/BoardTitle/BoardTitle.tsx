@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { validateTitle } from '../../../../utils/validates';
-import './board-title.scss';
+import s from './board-title.module.scss';
 
 type BoardTitleProps = {
   title?: string;
@@ -45,7 +45,7 @@ export const BoardTitle = ({
   };
 
   return (
-    <div className={`${className || ''} board-title`}>
+    <div className={`${className || ''} ${s.title}`}>
       <input
         id={'title'}
         name={'title'}
@@ -60,7 +60,7 @@ export const BoardTitle = ({
         onBlur={handleOnBlur}
         onKeyUp={handleKeyUpEnter}
       />
-      <div className={'error'} hidden={errors.length === 0}>
+      <div className={s.error} hidden={errors.length === 0}>
         {errors.map((e) => (
           <p key={e}>{e}</p>
         ))}

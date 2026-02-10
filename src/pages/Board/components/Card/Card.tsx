@@ -5,7 +5,7 @@ import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Tooltip } from 'react-tooltip';
-import './card.scss';
+import s from './card.module.scss';
 
 type CardTitleProps = {
   boardId: number;
@@ -76,17 +76,16 @@ export const Card = (props: CardTitleProps) => {
 
   return (
     <div>
-      <div className={`${readOnly ? 'board-card-readonly' : 'board-card-edit'} board-card`}>
+      <div className={`${readOnly ? s.card_readonly : s.card_edit} ${s.card}`}>
         <button
+          className={s.btn__remove}
           data-tooltip-id="tooltip-remove-card"
-          type="button"
-          className="board-card-btn-remove"
-          aria-label="Видалити картку"
           onClick={() => props.handleRemoveCard(props.cardId)}
         >
-          &times;
+          <span></span>
+          <span></span>
         </button>
-        <Tooltip id="tooltip-remove-card" className="tooltip" content="Видалити картку!" place="left" />
+        <Tooltip id="tooltip-remove-card" className={s.tooltip} content="Видалити картку!" place="left" />
         <input
           type={'text'}
           value={title}
@@ -100,7 +99,7 @@ export const Card = (props: CardTitleProps) => {
           onKeyUp={handleKeyUpEnter}
         />
       </div>
-      <div className={'error'} hidden={errors.length === 0}>
+      <div className={s.error} hidden={errors.length === 0}>
         {errors.map((e) => (
           <p key={e}>{e}</p>
         ))}

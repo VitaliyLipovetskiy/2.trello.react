@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { validateTitle } from '../../../../utils/validates';
-import './create-card.scss';
 import { Tooltip } from 'react-tooltip';
+import s from './card-create.module.scss';
 
-export const CreateCard = ({
+export const CardCreate = ({
   isCardNew,
   setIsCardNew,
   handleCreateCard,
@@ -60,11 +60,10 @@ export const CreateCard = ({
   };
 
   return (
-    <div className={'board-add-card'}>
+    <div className={s.card_add}>
       {isCardNew ? (
-        <div className={'board-card-new'}>
+        <div className={s.card_new}>
           <textarea
-            className={'board-card-new-input'}
             name={'cardTitle'}
             value={title}
             ref={inputRef}
@@ -74,14 +73,14 @@ export const CreateCard = ({
             onKeyUp={handleKeyUpEnter}
             onBlur={handleBlurTitle}
           />
-          <div className={'error'} hidden={errors.length === 0}>
+          <div className={s.error} hidden={errors.length === 0}>
             {errors.map((e) => (
               <p key={e}>{e}</p>
             ))}
           </div>
-          <div className={'board-card-btn'}>
+          <div className={s.card__btn}>
             <button
-              className={'card-btn-accept' + (titleTouched && errors.length === 0 ? '' : ' disabled')}
+              className={s.card__btn_accept + (titleTouched && errors.length === 0 ? '' : ' disabled')}
               disabled={!(titleTouched && errors.length === 0)}
               onMouseDown={handleAcceptCreateNewCard}
             >
@@ -90,7 +89,7 @@ export const CreateCard = ({
             <Tooltip id="tooltip-create-card" className="tooltip" content="Скасувати створення картки!" place="left" />
             <button
               data-tooltip-id="tooltip-create-card"
-              className={'card-btn-close'}
+              className={s.card__btn_close}
               onMouseDown={() => setDefaultValues()}
             >
               &times;
@@ -98,7 +97,7 @@ export const CreateCard = ({
           </div>
         </div>
       ) : (
-        <button className={'board-card-add-btn'} onClick={() => setIsCardNew(true)}>
+        <button className={s.card__btm_add} onClick={() => setIsCardNew(true)}>
           + Додати картку
         </button>
       )}

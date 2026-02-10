@@ -1,7 +1,9 @@
 @use 'src/styles/variables' as *;
 @use 'src/styles/mixins' as *;
 
-.board-list {
+@include btn__action('remove');
+
+.list {
   display: flex;
   flex-direction: column;
   min-width: 260px;
@@ -13,34 +15,16 @@
   padding: 5px;
   border-radius: 10px;
 
-  .board-list-btn-remove {
-    color: $secondary-color;
-    background-color: transparent;
-    position: absolute;
-    top: 14px;
-    right: 3px;
-    font-size: 15px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-  }
-
-  .board-list-btn-remove:hover {
-    cursor: pointer;
-    color: $primary-color;
-    background-color: $primary-background-element;
-    border: 1px solid $secondary-color;
-  }
-
   @include tooltip;
 }
 
-.board-list-title {
+.list_title {
   margin: 6px 24px 6px 6px;
   display: flex;
   flex-direction: column;
   border: 1px solid $primary-background;
 
-  input {
+  & input {
     padding: 5px;
     font-size: 16px;
     font-weight: bold;
@@ -48,15 +32,15 @@
     border: none;
     color: $primary-color;
   }
-
-  @include error;
 }
 
-.board-list-title-readonly input {
+@include error;
+
+.list_title_readonly input {
   cursor: pointer;
   background-color: transparent;
 }
 
-.board-list-title-write input {
+.list_title_write input {
   background-color: $primary-background-element;
 }
