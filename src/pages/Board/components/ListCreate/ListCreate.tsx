@@ -1,47 +1,77 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { validateTitle } from '../../../../utils/validates';
 import { Tooltip } from 'react-tooltip';
+import useValidation from '../../../../hooks/useValidation';
+import { boardAction } from '../../../../store/actions';
+import { IList, IListCreate } from '../../../../common/interfaces';
+import { addList } from '../../../../store/board/reducer';
+import { toast } from 'react-toastify';
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import s from './list-create.module.scss';
 
-type CreateListProps = {
-  isListNew: boolean;
-  setIsListNew: (value: boolean) => void;
-  handleCreateList: (name: string) => void;
-};
-
-export const ListCreate = ({ isListNew, setIsListNew, handleCreateList }: CreateListProps) => {
+export const ListCreate = () => {
+  const dispatch = useAppDispatch();
+  const [listNew, setListNew] = useState(false);
   const [title, setTitle] = useState('');
-  const [titleTouched, setTitleTouched] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const { board } = useAppSelector((state) => state.board);
+  const { errors, touched, setTouched } = useValidation(title);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!isListNew) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setListNew(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!listNew) {
       setTitle('');
-      setTitleTouched(false);
-      setErrors([]);
+      setTouched(false);
     }
-  }, [isListNew]);
+  }, [listNew, setTouched]);
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
-    setTitleTouched(true);
-    const titleErrors = validateTitle(e.target.value);
-    setErrors(titleErrors);
+    setTouched(true);
   };
 
   const setDefaultValues = () => {
     setTitle('');
-    setTitleTouched(false);
-    setErrors([]);
-    setIsListNew(false);
+    setTouched(false);
+    setListNew(false);
   };
 
-  const handleAcceptNewList = (e: React.MouseEvent) => {
+  const handleAcceptNewList = async (e: React.MouseEvent) => {
     e.preventDefault();
     setDefaultValues();
-    handleCreateList(title);
+    const listData: IListCreate = {
+      title,
+      position: (board?.lists.length || 0) + 1,
+    };
+    try {
+      const { result, id } = await dispatch(boardAction.createList({ boardId: board!.id, data: listData })).unwrap();
+      if (result === 'Created') {
+        const list: IList = { id, title, position: listData.position, cards: [] };
+        dispatch(addList(list));
+        toast.success('Список створено успішно');
+      } else {
+        console.log('Список не вдалося створити');
+        toast.error('Список не вдалося створити');
+      }
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        throw error;
+      }
+    }
   };
 
   const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -63,7 +93,7 @@ export const ListCreate = ({ isListNew, setIsListNew, handleCreateList }: Create
 
   return (
     <div className={s.list_add}>
-      {isListNew ? (
+      {listNew ? (
         <div className={s.list_new}>
           <input
             // className={'board-list-new-input'}
@@ -84,8 +114,8 @@ export const ListCreate = ({ isListNew, setIsListNew, handleCreateList }: Create
           </div>
           <div className={s.list__btn}>
             <button
-              className={s.list__btn_accept + (titleTouched && errors.length === 0 ? '' : ' disabled')}
-              disabled={!(titleTouched && errors.length === 0)}
+              className={`${s.list__btn_accept} ${!touched || errors.length > 0 ? s.disabled : ''}`}
+              disabled={!touched || errors.length > 0}
               ref={buttonRef}
               onMouseDown={handleAcceptNewList}
               onClick={handleAcceptNewList}
@@ -108,7 +138,7 @@ export const ListCreate = ({ isListNew, setIsListNew, handleCreateList }: Create
           </div>
         </div>
       ) : (
-        <button className={s.list__btn_add} onClick={() => setIsListNew(true)}>
+        <button className={s.list__btn_add} onClick={() => setListNew(true)}>
           + Додайте ще один список
         </button>
       )}

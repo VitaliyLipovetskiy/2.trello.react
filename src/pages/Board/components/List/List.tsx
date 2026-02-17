@@ -1,59 +1,56 @@
 import React, { useRef, useState } from 'react';
-import { IBoardList, ICreateCard } from '../../../../common/interfaces';
 import { Card } from '../Card/Card';
 import { CardCreate } from '../CardCreate/CardCreate';
-import boardService from '../../../../services/board/board.service';
-import { validateTitle } from '../../../../utils/validates';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
+import useValidation from '../../../../hooks/useValidation';
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { removeList, updateList } from '../../../../store/board/reducer';
+import { boardAction } from '../../../../store/actions';
+import { Link, useLocation } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
 
-type ListProps = {
-  boardId: number;
-  list: IBoardList;
-  handleUpdateBoard: () => void;
-};
-
-export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
+export const List = ({ id }: { id: number }) => {
+  const dispatch = useAppDispatch();
+  const { board } = useAppSelector((state) => state.board);
   const [titleReadOnly, setTitleReadOnly] = useState(true);
-  const [title, setTitle] = useState(list.title);
-  const [errors, setErrors] = useState<string[]>([]);
+  const list = board?.lists.find((list) => list.id === id);
+  const [title, setTitle] = useState(list?.title || '');
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isCardNew, setIsCardNew] = useState(false);
+  const { errors, touched, setTouched } = useValidation(title);
+  const location = useLocation();
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
     setTitle(e.target.value);
-    const titleErrors = validateTitle(e.target.value);
-    setErrors(titleErrors);
+    setTouched(true);
   };
 
-  const handleOnBlurTitle = () => {
-    setErrors([]);
+  const handleOnBlurTitle = async (e: React.FocusEvent<HTMLInputElement>) => {
+    e.preventDefault();
     setTitleReadOnly(true);
     if (errors.length !== 0) {
-      setTitle(list.title);
+      setTitle(list!.title);
       toast.warning('Оновлення списка скасовано');
-    } else if (list.title !== title.trim()) {
-      (async () => {
-        try {
-          const { result } = await boardService.updateListById(boardId, list.id, { title: title.trim() });
-          if (result === 'Updated') {
-            handleUpdateBoard();
-            toast.success('Назва списка оновлена успішно');
-          } else {
-            console.log('Назва списка не оновлена');
-            toast.error('Назва списка не оновлена');
-          }
-        } catch (error) {
-          console.log(error);
-          if (error instanceof Error) {
-            toast.error(error.message);
-          } else {
-            throw error;
-          }
+    } else if (list?.title !== title.trim()) {
+      try {
+        const { result } = await dispatch(
+          boardAction.updateListById({ boardId: board!.id, listId: id, data: { title: title.trim() } })
+        ).unwrap();
+        if (result === 'Updated') {
+          dispatch(updateList({ listId: id, title }));
+          toast.success(`Назва списка ${title} оновлена успішно`);
+        } else {
+          console.log(`Назва списка ${title} не оновлена`);
+          toast.error(`Назва списка ${title} не оновлена`);
         }
-      })();
+      } catch (error) {
+        console.log(error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        }
+      }
     }
   };
 
@@ -65,47 +62,28 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
     }
   };
 
-  const handleCreateCard = async (title: string) => {
-    const newCard: ICreateCard = {
-      title,
-      list_id: list.id,
-      position: list.cards.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
-    };
-    const { result } = await boardService.createCard(boardId, newCard);
-    if (result === 'Created') {
-      handleUpdateBoard();
-      toast.success('Карточка створена успішно');
-    } else {
-      console.log('Карточка не створена');
-      toast.error('Карточка не створена');
-    }
-  };
-
-  const handleRemoveCard = async (cardId: number) => {
-    const { result } = await boardService.removeCardById(boardId, cardId);
-    if (result === 'Deleted') {
-      handleUpdateBoard();
-      toast.success('Карточка видалена успішно');
-    } else {
-      console.log('Карточка не видалена');
-      toast.error('Карточка не видалена');
-    }
-  };
-
-  const handleRemoveList = async () => {
-    const { result } = await boardService.removeListById(boardId, list.id);
-    if (result === 'Deleted') {
-      handleUpdateBoard();
-      toast.success('Список видалений успішно');
-    } else {
-      console.log('Список не видалений');
-      toast.error('Список не видалений');
+  const handleClickRemoveList = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const { result } = await dispatch(boardAction.remoteListById({ boardId: board!.id, listId: id })).unwrap();
+      if (result === 'Deleted') {
+        dispatch(removeList(id));
+        toast.success(`Список ${list?.title} видалений успішно`);
+      } else {
+        console.log(`Список ${list?.title} не видалений`);
+        toast.error(`Список ${list?.title} не видалений`);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     }
   };
 
   return (
     <div className={s.list}>
-      <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleRemoveList}>
+      <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleClickRemoveList}>
         <span></span>
         <span></span>
       </button>
@@ -124,24 +102,19 @@ export const List = ({ boardId, list, handleUpdateBoard }: ListProps) => {
           onBlur={handleOnBlurTitle}
           onKeyUp={handleKeyUpEnter}
         />
-        <div className={s.error} hidden={errors.length === 0}>
+        <div className={s.error} hidden={!touched && errors.length === 0}>
           {errors.map((e) => (
             <p key={e}>{e}</p>
           ))}
         </div>
       </div>
-      {list.cards.map((card) => (
-        <Card
-          key={card.id}
-          boardId={boardId}
-          listId={list.id}
-          cardId={card.id}
-          title={card.title}
-          handleUpdateCard={handleUpdateBoard}
-          handleRemoveCard={handleRemoveCard}
-        />
+      {list?.cards.map((card) => (
+        <Link key={card.id} to={`/board/${board?.id}/cards/${card.id}`} state={{ background: location }}>
+          {/*<Link key={card.id} to={`/board/${board?.id}/cards/${card.id}`}>*/}
+          <Card key={card.id} listId={list.id} cardId={card.id} />
+        </Link>
       ))}
-      <CardCreate isCardNew={isCardNew} setIsCardNew={setIsCardNew} handleCreateCard={handleCreateCard} />
+      <CardCreate listId={list!.id} />
     </div>
   );
 };

@@ -1,47 +1,66 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { validateTitle } from '../../../../utils/validates';
 import { Tooltip } from 'react-tooltip';
+import useValidation from '../../../../hooks/useValidation';
+import { ICard, ICardCreate } from '../../../../common/interfaces';
+import { addCard } from '../../../../store/board/reducer';
+import { toast } from 'react-toastify';
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { boardAction } from '../../../../store/actions';
+import 'react-toastify/dist/ReactToastify.css';
 import s from './card-create.module.scss';
 
-export const CardCreate = ({
-  isCardNew,
-  setIsCardNew,
-  handleCreateCard,
-}: {
-  isCardNew: boolean;
-  setIsCardNew: (value: boolean) => void;
-  handleCreateCard: (name: string) => void;
-}) => {
+export const CardCreate = ({ listId }: { listId: number }) => {
+  const dispatch = useAppDispatch();
+  const { board } = useAppSelector((state) => state.board);
+  const list = board?.lists.find((list) => list.id === listId);
   const [title, setTitle] = useState('');
-  const [titleTouched, setTitleTouched] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [isCardNew, setIsCardNew] = useState(false);
+  const { errors, touched, setTouched } = useValidation(title);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isCardNew) {
       setTitle('');
-      setTitleTouched(false);
-      setErrors([]);
+      setTouched(false);
     }
   }, [isCardNew]);
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.target.value);
-    setTitleTouched(true);
-    const titleErrors = validateTitle(e.target.value);
-    setErrors(titleErrors);
+    setTouched(true);
   };
 
-  const handleAcceptCreateNewCard = (e: React.FormEvent<HTMLButtonElement>) => {
+  const handleAcceptCreateNewCard = async (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    const data: ICardCreate = {
+      title,
+      list_id: list!.id,
+      position: list!.cards.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
+    };
+    try {
+      const { result, id } = await dispatch(boardAction.createCard({ id: board!.id, data })).unwrap();
+      if (result === 'Created') {
+        const card: ICard = { id, title, position: data.position, users: [] };
+        dispatch(addCard({ listId: list!.id, card }));
+        toast.success(`Карточка ${title} створена успішно`);
+      } else {
+        console.log(`Карточка ${title} не створена`);
+        toast.error(`Карточка ${title} не створена`);
+      }
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        throw error;
+      }
+    }
     setDefaultValues();
-    handleCreateCard(title);
   };
 
   const setDefaultValues = () => {
     setTitle('');
-    setTitleTouched(false);
-    setErrors([]);
+    setTouched(false);
     setIsCardNew(false);
   };
 
@@ -54,7 +73,7 @@ export const CardCreate = ({
   const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else if (e.relatedTarget.className !== 'card-btn-accept') {
+    } else if (e.relatedTarget.className !== s.card__btn_accept) {
       setDefaultValues();
     }
   };
@@ -80,8 +99,8 @@ export const CardCreate = ({
           </div>
           <div className={s.card__btn}>
             <button
-              className={s.card__btn_accept + (titleTouched && errors.length === 0 ? '' : ' disabled')}
-              disabled={!(titleTouched && errors.length === 0)}
+              className={`${s.card__btn_accept} ${!touched || errors.length > 0 ? s.disabled : ''}`}
+              disabled={!touched || errors.length > 0}
               onMouseDown={handleAcceptCreateNewCard}
             >
               Додати картку

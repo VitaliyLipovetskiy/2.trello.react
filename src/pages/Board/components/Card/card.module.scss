@@ -1,7 +1,7 @@
 @use 'src/styles/variables' as *;
 @use 'src/styles/mixins' as *;
 
-@include btn__action('remove');
+@include btn__action('remove', 10px, 3px, 15px);
 @include tooltip;
 @include error;
 
@@ -29,10 +29,10 @@
   }
 }
 
-.btn__remove {
-  right: 3px;
-  top: 10px;
-}
+//.btn__remove {
+//  right: 3px;
+//  top: 10px;
+//}
 
 .card_readonly input {
   display: block;

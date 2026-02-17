@@ -1,133 +1,90 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BoardTitle, ListCreate, List } from './components';
-import { IBoard, ICreateList } from '../../common/interfaces';
-import boardService from '../../services/board/board.service';
+import { ListCreate, List, CardModal } from './components';
+import { IBoardUpdate } from '../../common/interfaces';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { ProgressBar } from '../../common/components';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { boardAction } from '../../store/actions';
+import useValidation from '../../hooks/useValidation';
+import 'react-toastify/dist/ReactToastify.css';
 import s from './board.module.scss';
 
 const Board = () => {
   const { id } = useParams();
-  const [board, setBoard] = useState<IBoard>();
-  const [title, setTitle] = useState(board?.title || '');
-  const [titleValid, setTitleValid] = useState(true);
-  const [titleReadOnly, setTitleReadOnly] = useState(true);
-  const [isListNew, setIsListNew] = useState(false);
+  const dispatch = useAppDispatch();
+  const { board } = useAppSelector((state) => state.board);
+  const [title, setTitle] = useState('');
+  const [titleEdit, setTitleEdit] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState(board?.custom?.background || '');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputTitleRef = useRef<HTMLInputElement>(null);
+  const inputColorRef = useRef<HTMLInputElement>(null);
+  const { errors, touched, setTouched } = useValidation(title || '');
 
   useEffect(() => {
-    (async () => {
-      try {
-        const iBoard = await boardService.getBoardById(+(id || 0));
-        setBoard(iBoard);
-        setTitle(iBoard.title);
-        setBackgroundColor(iBoard.custom?.background || '');
-      } catch (error) {
-        console.log(error);
-        if (error instanceof Error) {
-          toast.error(error.message);
-        }
-      }
-    })();
-  }, [id]);
+    if (id) {
+      dispatch(boardAction.getBoardById(+id));
+    }
+  }, [id, dispatch]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsListNew(false);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+    setTitle(board?.title || '');
+    setBackgroundColor(board?.custom?.background || '');
+  }, [board?.custom?.background, board?.title, dispatch]);
 
-  const handleOnBlurTitle = () => {
-    setTitleReadOnly(true);
-    if (!titleValid) {
+  const handleOnBlurTitle = async () => {
+    setTitleEdit(false);
+    if (errors.length > 0) {
       setTitle(board?.title || '');
       toast.warning('Назва дошки не оновлена');
-    } else if (board?.title !== title.trim()) {
-      (async () => {
-        try {
-          const { result } = await boardService.updateBoardById(+(id || 0), { title });
-          if (result === 'Updated') {
-            const board = await boardService.getBoardById(+(id || 0));
-            setBoard(board);
-            setTitle(board.title);
-            toast.success('Дошку оновлено успішно');
-          }
-        } catch (error) {
-          console.log(error);
-          if (error instanceof Error) {
-            toast.error(error.message);
-          } else {
-            throw error;
-          }
-        }
-      })();
-    }
-  };
-
-  const handleCreateList = async (title: string) => {
-    const listData: ICreateList = {
-      title,
-      position: (board?.lists.length || 0) + 1,
-    };
-    const { result } = await boardService.createList(+(id || 0), listData);
-    if (result === 'Created') {
-      const board = await boardService.getBoardById(+(id || 0));
-      setBoard(board);
-      toast.success('Список створено успішно');
-    } else {
-      console.log('Список не вдалося створити');
-      toast.error('Список не вдалося створити');
-    }
-  };
-
-  const handleUpdateBoard = () => {
-    (async () => {
+    } else if (board && touched && board.title !== title.trim()) {
       try {
-        const iBoard = await boardService.getBoardById(+(id || 0));
-        setBoard(iBoard);
+        const { result } = await dispatch(boardAction.updateBoardById({ id: +(id || 0), data: { title } })).unwrap();
+        if (result === 'Updated') {
+          toast.success('Дошку оновлено успішно');
+        }
       } catch (error) {
         console.log(error);
         if (error instanceof Error) {
           toast.error(error.message);
+        } else {
+          throw error;
         }
       }
-    })();
+    }
   };
 
-  const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleColorChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setBackgroundColor(event.target.value);
     if (event.target.value !== board?.custom?.background) {
-      (async () => {
-        try {
-          const { result } = await boardService.updateBoardById(+(id || 0), {
-            title,
-            custom: { background: event.target.value },
-          });
-          if (result === 'Updated') {
-            const board = await boardService.getBoardById(+(id || 0));
-            setBoard(board);
-            setBackgroundColor(board.custom?.background || '');
-            toast.success('Дошку оновлено успішно');
-            console.log('Дошку оновлено успішно');
-          }
-        } catch (error) {
-          console.log(error);
-          if (error instanceof Error) {
-            toast.error(error.message);
-          } else {
-            throw error;
-          }
+      const boardUpdate: IBoardUpdate = {
+        title,
+        custom: { background: event.target.value },
+      };
+      try {
+        const { result } = await dispatch(boardAction.updateBoardById({ id: +(id || 0), data: boardUpdate })).unwrap();
+        if (result === 'Updated') {
+          toast.success('Дошку оновлено успішно');
         }
-      })();
+      } catch (error) {
+        console.log(error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          throw error;
+        }
+      }
+    }
+  };
+
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    setTouched(true);
+  };
+
+  const handleKeyUpTitleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputTitleRef.current) {
+      inputTitleRef.current.blur();
     }
   };
 
@@ -137,15 +94,27 @@ const Board = () => {
         <header>
           <div className={s.header}>
             <div className={s.content}>
-              <BoardTitle
-                title={title}
-                setTitle={setTitle}
-                setTitleValid={setTitleValid}
-                readonly={titleReadOnly}
-                className={titleReadOnly ? s.title_readonly : s.title_edit}
-                handleClickTitle={() => setTitleReadOnly(false)}
-                handleOnBlurTitle={handleOnBlurTitle}
-              />
+              <div className={`${s.title} ${titleEdit ? s.title_edit : ''}`}>
+                <input
+                  id={'title'}
+                  name={'title'}
+                  type={'text'}
+                  value={title}
+                  ref={inputTitleRef}
+                  required
+                  readOnly={!titleEdit}
+                  autoFocus={titleEdit}
+                  onClick={() => setTitleEdit(true)}
+                  onChange={handleChangeTitle}
+                  onBlur={handleOnBlurTitle}
+                  onKeyUp={handleKeyUpTitleEnter}
+                />
+                <div className={s.error} hidden={!touched && errors.length === 0}>
+                  {errors.map((e) => (
+                    <p key={e}>{e}</p>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className={s.home}>
               <Link to={'/'}>{'<-Додому'}</Link>
@@ -154,25 +123,26 @@ const Board = () => {
               <input
                 type="color"
                 className={s.color_input}
-                ref={inputRef}
+                ref={inputColorRef}
                 value={backgroundColor}
                 onChange={handleColorChange}
               ></input>
               <button
                 className={s.color_swatch}
                 style={{ backgroundColor: backgroundColor }}
-                onClick={() => inputRef.current?.click()}
+                onClick={() => inputColorRef.current?.click()}
               />
             </div>
           </div>
         </header>
         <div className={s.container}>
           {board?.lists.map((list) => (
-            <List key={list.id} boardId={+(id || 0)} list={list} handleUpdateBoard={handleUpdateBoard} />
+            <List key={list.id} id={list.id} />
           ))}
-          <ListCreate isListNew={isListNew} setIsListNew={setIsListNew} handleCreateList={handleCreateList} />
+          <ListCreate />
         </div>
       </div>
+      <CardModal />
       <ToastContainer />
     </ProgressBar>
   );

@@ -1,10 +1,4 @@
-export { type IBoard } from './board/IBoard';
-export { type IUpdateBoard } from './board/IUpdateBoard';
-export { type IBoardList } from './board/IBoardList';
-export { type ICard } from './card/ICard';
-export { type ICreateCard } from './card/ICreateCard';
-export { type IUpdateCard } from './card/IUpdateCard';
-export { type ICreateList } from './list/ICreateList';
-export { type IUpdateList } from './list/IUpdateList';
-export { type IResult } from './IResult';
-export { type IResultCreated } from './IResultCreated';
+export { type IBoard, type IBoards, type IBoardUpdate } from './Board';
+export { type ICard, type ICardCreate, type ICardUpdate } from './Card';
+export { type IList, type IListCreate, type IListUpdate } from './List';
+export { type IResult, type IResultCreated } from './Result';

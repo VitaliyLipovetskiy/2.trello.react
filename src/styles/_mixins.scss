@@ -1,7 +1,7 @@
 @use './variables' as *;
 
-@mixin button {
-  button {
+@mixin btn_accept {
+  .btn__accept {
     width: 100%;
     padding: 10px;
     background-color: $primary-background;
@@ -10,12 +10,12 @@
     font-size: 16px;
     border-radius: 5px;
     text-align: left;
-  }
 
-  button:hover {
-    cursor: pointer;
-    background-color: $secondary-background;
-    border: 1px solid $primary-color;
+    &:hover {
+      cursor: pointer;
+      background-color: $secondary-background;
+      border: 1px solid $primary-color;
+    }
   }
 }
 
@@ -34,13 +34,13 @@
   }
 }
 
-@mixin btn__action($name) {
+@mixin btn__action($name, $top, $right, $size) {
   .btn__#{$name} {
     position: absolute;
-    top: 3px;
-    right: 3px;
-    height: 15px;
-    width: 15px;
+    top: $top;
+    right: $right;
+    height: $size;
+    width: $size;
     background-color: transparent;
     border-color: transparent;
     padding: 0;
@@ -66,6 +66,37 @@
     &:hover {
       color: $primary-background;
       background-color: $primary-color;
+      cursor: pointer;
     }
+  }
+}
+
+@mixin onLargeDesktop {
+  @media (max-width: 1600px) {
+    @content;
+  }
+}
+
+@mixin onSmallDesktop {
+  @media (max-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin onLargeTablet {
+  @media (max-width: 767px) {
+    @content;
+  }
+}
+
+@mixin onSmallTablet {
+  @media (max-width: 639px) {
+    @content;
+  }
+}
+
+@mixin onMobile {
+  @media (max-width: 440px) {
+    @content;
   }
 }
