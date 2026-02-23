@@ -7,15 +7,25 @@ import './App.css';
 
 function App() {
   const location = useLocation();
+  const background = location.state?.background;
 
   return (
-    // <Routes>
-    <Routes location={location.state?.background || location}>
-      <Route index element={<Home />} />
-      <Route path={'/'} element={<Home />} />
-      <Route path={'/board/:id'} element={<Board />} />
-      <Route path={'/board/:id/cards/:cardId'} element={<CardModal />} />
-    </Routes>
+    <>
+      <Routes location={background || location}>
+        <Route index element={<Home />} />
+        <Route path={''} element={<Home />} />
+        <Route path={'board/:boardId'} element={<Board />}>
+          <Route path={'card/:cardId'} element={<CardModal />} />
+        </Route>
+      </Routes>
+      {/*{background && (*/}
+      {/*  <Routes>*/}
+      {/*    <Route path={'board/:boardId'} element={<Board />}>*/}
+      {/*      <Route path={'card/:cardId'} element={<CardModal />} />*/}
+      {/*    </Route>*/}
+      {/*  </Routes>*/}
+      {/*)}*/}
+    </>
   );
 }
 

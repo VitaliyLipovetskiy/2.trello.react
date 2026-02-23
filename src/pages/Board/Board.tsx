@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import s from './board.module.scss';
 
 const Board = () => {
-  const { id } = useParams();
+  const { boardId } = useParams();
   const dispatch = useAppDispatch();
   const { board } = useAppSelector((state) => state.board);
   const [title, setTitle] = useState('');
@@ -19,13 +19,13 @@ const Board = () => {
   const [backgroundColor, setBackgroundColor] = useState(board?.custom?.background || '');
   const inputTitleRef = useRef<HTMLInputElement>(null);
   const inputColorRef = useRef<HTMLInputElement>(null);
-  const { errors, touched, setTouched } = useValidation(title || '');
+  const { errors, touched, setTouched } = useValidation(title);
 
   useEffect(() => {
-    if (id) {
-      dispatch(boardAction.getBoardById(+id));
+    if (boardId) {
+      dispatch(boardAction.getBoardById(+boardId));
     }
-  }, [id, dispatch]);
+  }, [boardId, dispatch]);
 
   useEffect(() => {
     setTitle(board?.title || '');
@@ -39,7 +39,9 @@ const Board = () => {
       toast.warning('Назва дошки не оновлена');
     } else if (board && touched && board.title !== title.trim()) {
       try {
-        const { result } = await dispatch(boardAction.updateBoardById({ id: +(id || 0), data: { title } })).unwrap();
+        const { result } = await dispatch(
+          boardAction.updateBoardById({ id: +(boardId || 0), data: { title } })
+        ).unwrap();
         if (result === 'Updated') {
           toast.success('Дошку оновлено успішно');
         }
@@ -62,7 +64,9 @@ const Board = () => {
         custom: { background: event.target.value },
       };
       try {
-        const { result } = await dispatch(boardAction.updateBoardById({ id: +(id || 0), data: boardUpdate })).unwrap();
+        const { result } = await dispatch(
+          boardAction.updateBoardById({ id: +(boardId || 0), data: boardUpdate })
+        ).unwrap();
         if (result === 'Updated') {
           toast.success('Дошку оновлено успішно');
         }

@@ -7,7 +7,7 @@ import useValidation from '../../../../hooks/useValidation';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { removeList, updateList } from '../../../../store/board/reducer';
 import { boardAction } from '../../../../store/actions';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
 
@@ -109,11 +109,11 @@ export const List = ({ id }: { id: number }) => {
         </div>
       </div>
       {list?.cards.map((card) => (
-        <Link key={card.id} to={`/board/${board?.id}/cards/${card.id}`} state={{ background: location }}>
-          {/*<Link key={card.id} to={`/board/${board?.id}/cards/${card.id}`}>*/}
+        <Link key={card.id} to={`card/${card.id}`} reloadDocument={true} state={{ background: location }}>
           <Card key={card.id} listId={list.id} cardId={card.id} />
         </Link>
       ))}
+      <Outlet />
       <CardCreate listId={list!.id} />
     </div>
   );

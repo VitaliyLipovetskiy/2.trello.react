@@ -1,16 +1,19 @@
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { clearCard, updateCard } from '../../../../store/board/reducer';
+import { clearCard, setCard, updateCard } from '../../../../store/board/reducer';
 import React, { MouseEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
-import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 import { ICardUpdate } from '../../../../common/interfaces';
 import { boardAction } from '../../../../store/actions';
 import s from './card-modal.module.scss';
+import { useNavigate } from 'react-router-dom';
 
 export const CardModal = () => {
+  const navigate = useNavigate();
   const { card, board, list } = useAppSelector((state) => state.board);
   const dispatch = useAppDispatch();
+  const { boardId, cardId } = useParams();
   const [formData, setFormData] = useState({
     title: card?.title || '',
     description: card?.description || '',
@@ -18,9 +21,27 @@ export const CardModal = () => {
   const { errors, setTouched: setTitleTouched, touched } = useValidation(formData.title);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const handleModalClose = () => {
-    dispatch(clearCard());
+  useEffect(() => {
+    if (!card && boardId && cardId) {
+      handleGetCard(+boardId, +cardId);
+    }
+  }, []);
+
+  const handleGetCard = async (boardId: number, cardId: number) => {
+    console.log('handleGetCard');
+    const currentBoard = await dispatch(boardAction.getBoardById(boardId)).unwrap();
+    const currentList = currentBoard.lists.find((list) => list.cards.find((card) => card.id === cardId));
+    const currentCard = currentList?.cards.find((card) => card.id === cardId);
+    if (currentList && currentCard) {
+      console.log(currentCard.id);
+      dispatch(setCard({ card: currentCard, list: currentList }));
+    }
   };
+
+  const handleModalClose = useCallback(() => {
+    dispatch(clearCard());
+    navigate(-1);
+  }, []);
 
   const handleClose: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
     handleModalClose();
