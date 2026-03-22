@@ -1,4 +1,4 @@
-import { IList } from './List';
+import { IList, IListSlot } from './List';
 
 export interface IBoard {
   id: number;
@@ -9,8 +9,13 @@ export interface IBoard {
   lists: IList[];
 }
 
-export interface IBoards {
-  boards: IBoard[];
+export interface IBoardSlot {
+  id: number;
+  title: string;
+  custom?: {
+    background: string;
+  };
+  lists?: IListSlot[];
 }
 
 export interface IBoardUpdate {

@@ -2,20 +2,30 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { setCard } from '../../../../store/board/reducer';
 import s from './card.module.scss';
+import { Link, useLocation } from 'react-router-dom';
 
-export const Card = ({ listId, cardId }: { listId: number; cardId: number }) => {
+export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) => {
   const dispatch = useAppDispatch();
-  const { board } = useAppSelector((state) => state.board);
-  const card = board?.lists.find((list) => list.id === listId)?.cards.find((card) => card?.id === cardId);
+  const { boardSlot } = useAppSelector((state) => state.board);
+  const cardSlot = boardSlot?.lists
+    ?.find((list) => list.id === listId)
+    ?.cardSlots.find((cardSlot) => cardSlot.card?.id === cardId);
+  const location = useLocation();
 
   const handleClickCard = (e: React.MouseEvent<HTMLInputElement>) => {
-    const list = board?.lists.find((list) => list.id === listId);
-    dispatch(setCard({ card, list }));
+    const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
+    dispatch(setCard({ cardSlot, listSlot }));
   };
 
   return (
     <div className={s.card}>
-      <input type={'text'} value={card?.title || ''} required readOnly onClick={handleClickCard} />
+      {cardSlot?.card ? (
+        <Link to={`card/${cardSlot.card.id}`} reloadDocument={true} state={{ background: location }}>
+          <input type={'text'} value={cardSlot?.card?.title || ''} required readOnly onClick={handleClickCard} />
+        </Link>
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 };

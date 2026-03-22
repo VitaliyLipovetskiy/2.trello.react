@@ -11,8 +11,8 @@ import s from './card-create.module.scss';
 
 export const CardCreate = ({ listId }: { listId: number }) => {
   const dispatch = useAppDispatch();
-  const { board } = useAppSelector((state) => state.board);
-  const list = board?.lists.find((list) => list.id === listId);
+  const { boardSlot } = useAppSelector((state) => state.board);
+  const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
   const [title, setTitle] = useState('');
   const [isCardNew, setIsCardNew] = useState(false);
   const { errors, touched, setTouched } = useValidation(title);
@@ -23,7 +23,7 @@ export const CardCreate = ({ listId }: { listId: number }) => {
       setTitle('');
       setTouched(false);
     }
-  }, [isCardNew]);
+  }, [isCardNew, setTitle, setTouched]);
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.target.value);
@@ -34,14 +34,14 @@ export const CardCreate = ({ listId }: { listId: number }) => {
     e.preventDefault();
     const data: ICardCreate = {
       title,
-      list_id: list!.id,
-      position: list!.cards.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
+      list_id: listSlot!.id,
+      position: listSlot!.cardSlots.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
     };
     try {
-      const { result, id } = await dispatch(boardAction.createCard({ id: board!.id, data })).unwrap();
+      const { result, id } = await dispatch(boardAction.createCard({ id: boardSlot!.id, data })).unwrap();
       if (result === 'Created') {
         const card: ICard = { id, title, position: data.position, users: [] };
-        dispatch(addCard({ listId: list!.id, card }));
+        dispatch(addCard({ listId: listSlot!.id, card }));
         toast.success(`Карточка ${title} створена успішно`);
       } else {
         console.log(`Карточка ${title} не створена`);

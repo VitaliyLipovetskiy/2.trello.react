@@ -1,8 +1,7 @@
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { clearCard, setCard, updateCard } from '../../../../store/board/reducer';
+import { clearCard, updateCard } from '../../../../store/board/reducer';
 import React, { MouseEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
-import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 import { ICardUpdate } from '../../../../common/interfaces';
 import { boardAction } from '../../../../store/actions';
@@ -11,37 +10,19 @@ import { useNavigate } from 'react-router-dom';
 
 export const CardModal = () => {
   const navigate = useNavigate();
-  const { card, board, list } = useAppSelector((state) => state.board);
+  const { cardSlot, boardSlot, listSlot } = useAppSelector((state) => state.board);
   const dispatch = useAppDispatch();
-  const { boardId, cardId } = useParams();
   const [formData, setFormData] = useState({
-    title: card?.title || '',
-    description: card?.description || '',
+    title: cardSlot?.card?.title || '',
+    description: cardSlot?.card?.description || '',
   });
   const { errors, setTouched: setTitleTouched, touched } = useValidation(formData.title);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!card && boardId && cardId) {
-      handleGetCard(+boardId, +cardId);
-    }
-  }, []);
-
-  const handleGetCard = async (boardId: number, cardId: number) => {
-    console.log('handleGetCard');
-    const currentBoard = await dispatch(boardAction.getBoardById(boardId)).unwrap();
-    const currentList = currentBoard.lists.find((list) => list.cards.find((card) => card.id === cardId));
-    const currentCard = currentList?.cards.find((card) => card.id === cardId);
-    if (currentList && currentCard) {
-      console.log(currentCard.id);
-      dispatch(setCard({ card: currentCard, list: currentList }));
-    }
-  };
-
   const handleModalClose = useCallback(() => {
     dispatch(clearCard());
     navigate(-1);
-  }, []);
+  }, [dispatch, navigate]);
 
   const handleClose: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
     handleModalClose();
@@ -70,12 +51,12 @@ export const CardModal = () => {
 
   useEffect(() => {
     setFormData({
-      title: card?.title || '',
-      description: card?.description || '',
+      title: cardSlot?.card?.title || '',
+      description: cardSlot?.card?.description || '',
     });
-  }, [card]);
+  }, [cardSlot]);
 
-  if (!card) {
+  if (!cardSlot) {
     return null;
   }
 
@@ -93,8 +74,8 @@ export const CardModal = () => {
 
   const setDefaultValues = () => {
     setFormData({
-      title: card?.title || '',
-      description: card?.description || '',
+      title: cardSlot?.card?.title || '',
+      description: cardSlot?.card?.description || '',
     });
   };
 
@@ -105,24 +86,27 @@ export const CardModal = () => {
       toast.warning('Оновлення карточки скасовано');
       return;
     }
-    if (formData.title.trim() === card?.title.trim() && formData.description.trim() === card?.description?.trim()) {
+    if (
+      formData.title.trim() === cardSlot?.card?.title.trim() &&
+      formData.description.trim() === cardSlot?.card?.description?.trim()
+    ) {
       return;
     }
     const data: ICardUpdate = {
       title: formData.title.trim(),
       description: formData.description?.trim(),
-      list_id: list?.id,
+      list_id: listSlot?.id,
     };
     try {
       const { result } = await dispatch(
-        boardAction.updateCardById({ boardId: board!.id, cardId: card.id, data })
+        boardAction.updateCardById({ boardId: boardSlot!.id, cardId: cardSlot.card!.id, data })
       ).unwrap();
       if (result === 'Updated') {
-        dispatch(updateCard({ cardId: card.id, listId: list!.id, card: data }));
+        dispatch(updateCard({ cardId: cardSlot.card!.id, listId: listSlot!.id, card: data }));
         toast.success(`Картка ${formData.title} оновлена успішно`);
       } else {
-        console.log(`Картка ${card.title} не оновлена`);
-        toast.error(`Картка ${card.title} не оновлена`);
+        console.log(`Картка ${cardSlot.card!.title} не оновлена`);
+        toast.error(`Картка ${cardSlot.card!.title} не оновлена`);
       }
     } catch (error) {
       console.log(error);
@@ -159,7 +143,7 @@ export const CardModal = () => {
                 ))}
               </div>
               <label htmlFor="title">
-                в колонці <ins>{list?.title}</ins>
+                в колонці <ins>{listSlot?.title}</ins>
               </label>
             </div>
             <div className={s.description}>

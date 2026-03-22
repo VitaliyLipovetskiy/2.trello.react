@@ -12,7 +12,7 @@ export const ListCreate = () => {
   const dispatch = useAppDispatch();
   const [listNew, setListNew] = useState(false);
   const [title, setTitle] = useState('');
-  const { board } = useAppSelector((state) => state.board);
+  const { boardSlot } = useAppSelector((state) => state.board);
   const { errors, touched, setTouched } = useValidation(title);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -52,10 +52,12 @@ export const ListCreate = () => {
     setDefaultValues();
     const listData: IListCreate = {
       title,
-      position: (board?.lists.length || 0) + 1,
+      position: (boardSlot?.lists?.length || 0) + 1,
     };
     try {
-      const { result, id } = await dispatch(boardAction.createList({ boardId: board!.id, data: listData })).unwrap();
+      const { result, id } = await dispatch(
+        boardAction.createList({ boardId: boardSlot!.id, data: listData })
+      ).unwrap();
       if (result === 'Created') {
         const list: IList = { id, title, position: listData.position, cards: [] };
         dispatch(addList(list));

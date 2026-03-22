@@ -7,19 +7,18 @@ import useValidation from '../../../../hooks/useValidation';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { removeList, updateList } from '../../../../store/board/reducer';
 import { boardAction } from '../../../../store/actions';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
 
 export const List = ({ id }: { id: number }) => {
   const dispatch = useAppDispatch();
-  const { board } = useAppSelector((state) => state.board);
+  const { boardSlot } = useAppSelector((state) => state.board);
   const [titleReadOnly, setTitleReadOnly] = useState(true);
-  const list = board?.lists.find((list) => list.id === id);
+  const list = boardSlot?.lists?.find((list) => list.id === id);
   const [title, setTitle] = useState(list?.title || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const { errors, touched, setTouched } = useValidation(title);
-  const location = useLocation();
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -36,7 +35,7 @@ export const List = ({ id }: { id: number }) => {
     } else if (list?.title !== title.trim()) {
       try {
         const { result } = await dispatch(
-          boardAction.updateListById({ boardId: board!.id, listId: id, data: { title: title.trim() } })
+          boardAction.updateListById({ boardId: boardSlot!.id, listId: id, data: { title: title.trim() } })
         ).unwrap();
         if (result === 'Updated') {
           dispatch(updateList({ listId: id, title }));
@@ -65,7 +64,7 @@ export const List = ({ id }: { id: number }) => {
   const handleClickRemoveList = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-      const { result } = await dispatch(boardAction.remoteListById({ boardId: board!.id, listId: id })).unwrap();
+      const { result } = await dispatch(boardAction.remoteListById({ boardId: boardSlot!.id, listId: id })).unwrap();
       if (result === 'Deleted') {
         dispatch(removeList(id));
         toast.success(`Список ${list?.title} видалений успішно`);
@@ -82,39 +81,51 @@ export const List = ({ id }: { id: number }) => {
   };
 
   return (
-    <div className={s.list}>
-      <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleClickRemoveList}>
-        <span></span>
-        <span></span>
-      </button>
-      <Tooltip id="tooltip-remove-list" className={s.tooltip} content="Видалити список!" place="left" />
-      <div className={`${titleReadOnly ? s.list_title_readonly : s.list_title_write} ${s.list_title}`}>
-        <input
-          name={'title'}
-          type={'text'}
-          value={title}
-          ref={inputRef}
-          required
-          readOnly={titleReadOnly}
-          autoFocus={!titleReadOnly}
-          onClick={() => setTitleReadOnly(false)}
-          onChange={handleChangeTitle}
-          onBlur={handleOnBlurTitle}
-          onKeyUp={handleKeyUpEnter}
-        />
-        <div className={s.error} hidden={!touched && errors.length === 0}>
-          {errors.map((e) => (
-            <p key={e}>{e}</p>
-          ))}
+    <div className={s.list_wraper}>
+      <div className={s.list}>
+        <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleClickRemoveList}>
+          <span></span>
+          <span></span>
+        </button>
+        <Tooltip id="tooltip-remove-list" className={s.tooltip} content="Видалити список!" place="left" />
+        <div className={`${titleReadOnly ? s.list_title_readonly : s.list_title_write} ${s.list_title}`}>
+          <input
+            name={'title'}
+            type={'text'}
+            value={title}
+            ref={inputRef}
+            required
+            readOnly={titleReadOnly}
+            autoFocus={!titleReadOnly}
+            onClick={() => setTitleReadOnly(false)}
+            onChange={handleChangeTitle}
+            onBlur={handleOnBlurTitle}
+            onKeyUp={handleKeyUpEnter}
+          />
+          <div className={s.error} hidden={!touched && errors.length === 0}>
+            {errors.map((e) => (
+              <p key={e}>{e}</p>
+            ))}
+          </div>
         </div>
+        <ol className={s.container}>
+          {list?.cardSlots?.map((cardSlot) =>
+            cardSlot.card ? (
+              <li className={s.card_wrapper} key={cardSlot.card.id} draggable={true}>
+                {/*<Link to={`card/${card.id}`} reloadDocument={true} state={{ background: location }}>*/}
+                <Card listId={list.id} cardId={cardSlot.card.id} />
+                {/*</Link>*/}
+              </li>
+            ) : (
+              <li className={s.card_wrapper} key={-1} hidden={!cardSlot.view}>
+                <Card listId={list.id} />
+              </li>
+            )
+          )}
+        </ol>
+        <Outlet />
+        <CardCreate listId={list!.id} />
       </div>
-      {list?.cards.map((card) => (
-        <Link key={card.id} to={`card/${card.id}`} reloadDocument={true} state={{ background: location }}>
-          <Card key={card.id} listId={list.id} cardId={card.id} />
-        </Link>
-      ))}
-      <Outlet />
-      <CardCreate listId={list!.id} />
     </div>
   );
 };

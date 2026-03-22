@@ -13,10 +13,10 @@ import s from './board.module.scss';
 const Board = () => {
   const { boardId } = useParams();
   const dispatch = useAppDispatch();
-  const { board } = useAppSelector((state) => state.board);
+  const { boardSlot } = useAppSelector((state) => state.board);
   const [title, setTitle] = useState('');
   const [titleEdit, setTitleEdit] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState(board?.custom?.background || '');
+  const [backgroundColor, setBackgroundColor] = useState(boardSlot?.custom?.background || '');
   const inputTitleRef = useRef<HTMLInputElement>(null);
   const inputColorRef = useRef<HTMLInputElement>(null);
   const { errors, touched, setTouched } = useValidation(title);
@@ -28,16 +28,16 @@ const Board = () => {
   }, [boardId, dispatch]);
 
   useEffect(() => {
-    setTitle(board?.title || '');
-    setBackgroundColor(board?.custom?.background || '');
-  }, [board?.custom?.background, board?.title, dispatch]);
+    setTitle(boardSlot?.title || '');
+    setBackgroundColor(boardSlot?.custom?.background || '');
+  }, [boardSlot?.custom?.background, boardSlot?.title, dispatch]);
 
   const handleOnBlurTitle = async () => {
     setTitleEdit(false);
     if (errors.length > 0) {
-      setTitle(board?.title || '');
+      setTitle(boardSlot?.title || '');
       toast.warning('Назва дошки не оновлена');
-    } else if (board && touched && board.title !== title.trim()) {
+    } else if (boardSlot && touched && boardSlot.title !== title.trim()) {
       try {
         const { result } = await dispatch(
           boardAction.updateBoardById({ id: +(boardId || 0), data: { title } })
@@ -58,7 +58,7 @@ const Board = () => {
 
   const handleColorChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setBackgroundColor(event.target.value);
-    if (event.target.value !== board?.custom?.background) {
+    if (event.target.value !== boardSlot?.custom?.background) {
       const boardUpdate: IBoardUpdate = {
         title,
         custom: { background: event.target.value },
@@ -140,7 +140,7 @@ const Board = () => {
           </div>
         </header>
         <div className={s.container}>
-          {board?.lists.map((list) => (
+          {boardSlot?.lists?.map((list) => (
             <List key={list.id} id={list.id} />
           ))}
           <ListCreate />
