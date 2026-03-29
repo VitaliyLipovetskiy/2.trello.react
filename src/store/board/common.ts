@@ -9,5 +9,6 @@ export enum ActionType {
   REMOVE_LIST = 'boards/remove-list',
   CREATE_CARD = 'boards/create-card',
   UPDATE_CARD = 'boards/update-card',
+  UPDATE_GROUP_CARDS = 'boards/update-group-cards',
   REMOVE_CARD = 'boards/remove-card',
 }

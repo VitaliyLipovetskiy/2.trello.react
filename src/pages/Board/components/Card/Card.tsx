@@ -24,7 +24,7 @@ export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) =>
           <input type={'text'} value={cardSlot?.card?.title || ''} required readOnly onClick={handleClickCard} />
         </Link>
       ) : (
-        <div></div>
+        <input type={'text'}></input>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import {
   IBoard,
   IBoardUpdate,
   ICardCreate,
+  ICardsUpdate,
   ICardUpdate,
   IListCreate,
   IListUpdate,
@@ -94,6 +95,14 @@ const updateCardById = createAsyncThunk<
   return await api.put(`board/${payload.boardId}/card/${payload.cardId}`, payload.data);
 });
 
+const updateGroupCards = createAsyncThunk<IResult, { boardId: number; data: ICardsUpdate[] }, AsyncThunkConfig>(
+  ActionType.UPDATE_GROUP_CARDS,
+  async (payload, { extra }) => {
+    const { api } = extra;
+    return await api.put(`board/${payload.boardId}/card`, payload.data);
+  }
+);
+
 const remoteCardById = createAsyncThunk<IResult, { boardId: number; cardId: number }, AsyncThunkConfig>(
   ActionType.REMOVE_CARD,
   async (payload, { extra }) => {
@@ -113,5 +122,6 @@ export {
   remoteListById,
   createCard,
   updateCardById,
+  updateGroupCards,
   remoteCardById,
 };

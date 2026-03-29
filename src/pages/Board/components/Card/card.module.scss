@@ -15,24 +15,23 @@
   background-color: $primary-background-element;
   justify-content: center;
 
+  &:hover {
+    border: 1px solid $primary-color;
+  }
+
   & a {
     display: flex;
     flex-direction: column;
-
-    & input {
-      padding: 10px;
-      border-radius: 5px;
-      color: $primary-color;
-      border-color: transparent;
-      background-color: transparent;
-
-      backdrop-filter: blur(2px);
-    }
   }
 
+  input {
+    padding: 10px;
+    border-radius: 5px;
+    color: $primary-color;
+    border-color: transparent;
+    background-color: transparent;
 
-  &:hover {
-    border: 1px solid $primary-color;
+    backdrop-filter: blur(2px);
   }
 }
 

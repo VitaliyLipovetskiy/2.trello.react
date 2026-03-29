@@ -9,11 +9,6 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(2px);
-  //display: none;
-
-  //&.visible {
-  //  display: flex;
-  //}
 
   .modal {
     position: fixed;
@@ -28,9 +23,6 @@
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
-    //padding: 30px;
-    //overflow-y: scroll;
-    //display: none;
 
     &::-webkit-scrollbar {
       width: 0;
@@ -84,8 +76,6 @@ body.overflow {
       font-size: 18px;
       border: none;
       font-weight: 1000;
-      //margin-top: 10px;
-      //margin-bottom: 20px;
     }
 
     & label {
@@ -97,12 +87,10 @@ body.overflow {
   & .description {
     display: flex;
     flex-direction: column;
-    //margin-bottom: 10px;
     margin-top: 10px;
 
     &_header {
       display: flex;
-      //flex-direction: column;
       position: relative;
     }
 
@@ -113,30 +101,61 @@ body.overflow {
     }
 
     & textarea {
-      //margin-top: 20px;
       padding: 8px;
       border-radius: 5px;
-      //border: 1px solid $secondary-background;
-      //background: $primary-background-element;
-      //color: $primary-color;
-      //font-size: 16px;
       resize: none;
-      //border: none;
+    }
+
+    & .description_viewer {
+      padding: 8px;
+      min-height: 40px;
+      cursor: pointer;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid $secondary-color;
+      border-radius: 5px;
+
+      strong {
+        font-weight: 700;
+      }
+
+      em {
+        font-style: italic;
+      }
+
+      del {
+        text-decoration: line-through;
+      }
+
+      h1, h2, h3 {
+        margin-top: 12px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-size: 1.4em;
+      }
+
+      h2 {
+        font-size: 1.2em;
+      }
+
+      h3 {
+        font-size: 1.1em;
+      }
+
+      code {
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        background-color: $secondary-color;
+        border-radius: 5px;
+        font-family: monospace;
+      }
     }
   }
-
-  //@include btn_accept;
-  //
-  //& .btn__accept {
-  //  margin-top: 20px;
-  //  text-align: center;
-  //  font-weight: bold;
-  //
-  //  &.disabled {
-  //    opacity: 0.5;
-  //    cursor: not-allowed;
-  //  }
-  //}
 
   @include error;
 }
@@ -144,7 +163,6 @@ body.overflow {
 .modal_actions {
   display: flex;
   flex-direction: column;
-  //align-items: center;
   position: relative;
   margin: 10px;
   width: 200px;
