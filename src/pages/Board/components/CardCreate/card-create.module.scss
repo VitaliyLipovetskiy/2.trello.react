@@ -1,0 +1,90 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+@include tooltip;
+@include error;
+
+.card_add {
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  border: none;
+  margin: 6px;
+  border-radius: 10px;
+}
+
+.card_new {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 10px;
+
+  textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: $glass-border;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: $glass-blur-light;
+    color: $primary-color;
+    font-size: 16px;
+    resize: none;
+  }
+}
+
+.card__btn {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+
+  & button {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: $glass-border;
+    transition: all 0.3s ease;
+  }
+
+  & .card__btn_accept {
+    background: $secondary-background;
+    color: white;
+
+    &:hover {
+      cursor: pointer;
+      background: $secondary-background-hover;
+      box-shadow: $glass-glow;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  & .card__btn_close {
+    background: rgba(255, 255, 255, 0.06);
+    color: $primary-color;
+
+    &:hover {
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+}
+
+.card__btm_add {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  font-size: 16px;
+  align-items: center;
+  color: rgba(180, 170, 255, 0.8);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}

@@ -1,28 +1,31 @@
 @use './variables' as *;
 
-@mixin button {
-  button {
+@mixin btn_accept {
+  .btn__accept {
     width: 100%;
     padding: 10px;
-    background-color: $primary-background;
-    border: 1px solid $primary-background;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: $glass-border;
     color: $primary-color;
     font-size: 16px;
-    border-radius: 5px;
+    border-radius: 10px;
     text-align: left;
-  }
+    backdrop-filter: $glass-blur-light;
+    transition: all 0.3s ease;
 
-  button:hover {
-    cursor: pointer;
-    background-color: $secondary-background;
-    border: 1px solid $primary-color;
+    &:hover {
+      cursor: pointer;
+      background-color: $secondary-background;
+      border: $glass-border;
+      box-shadow: $glass-glow;
+    }
   }
 }
 
 @mixin error {
   .error p {
     margin: 0;
-    color: red;
+    color: #ff6b6b;
     font-size: 12px;
   }
 }
@@ -31,5 +34,73 @@
   .tooltip {
     background-color: $secondary-background;
     color: $primary-color;
+  }
+}
+
+@mixin btn__action($name, $top, $right, $size) {
+  .btn__#{$name} {
+    position: absolute;
+    top: $top;
+    right: $right;
+    height: $size;
+    width: $size;
+    background-color: transparent;
+    border-color: transparent;
+    padding: 0;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: rgba(255, 255, 255, 0.5);
+
+      &:first-child {
+        transform: translate(-50%, -50%) rotate(45deg);
+      }
+
+      &:last-child {
+        transform: translate(-50%, -50%) rotate(-45deg);
+      }
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+    }
+  }
+}
+
+@mixin onLargeDesktop {
+  @media (max-width: 1600px) {
+    @content;
+  }
+}
+
+@mixin onSmallDesktop {
+  @media (max-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin onLargeTablet {
+  @media (max-width: 767px) {
+    @content;
+  }
+}
+
+@mixin onSmallTablet {
+  @media (max-width: 639px) {
+    @content;
+  }
+}
+
+@mixin onMobile {
+  @media (max-width: 440px) {
+    @content;
   }
 }

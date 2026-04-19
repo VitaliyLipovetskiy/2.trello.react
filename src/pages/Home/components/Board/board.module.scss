@@ -1,0 +1,24 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+.board {
+  position: relative;
+  height: 130px;
+  border: $glass-border;
+  padding: 10px;
+  border-radius: 16px;
+  color: $primary-color;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: $glass-blur-light;
+  box-shadow: $glass-shadow;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $glass-shadow, $glass-glow;
+  }
+
+  @include btn__action('remove', 8px, 8px, 15px);
+}
+
+@include tooltip;

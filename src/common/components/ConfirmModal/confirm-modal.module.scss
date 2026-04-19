@@ -1,0 +1,64 @@
+@use 'src/styles/variables' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: $primary-background-element;
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 300px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.message {
+  margin: 0;
+  color: $primary-color;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn_confirm {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: $secondary-background;
+  color: $primary-color;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $secondary-background-hover;
+  }
+}
+
+.btn_cancel {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: $primary-background-element;
+  color: $primary-color;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $secondary-color;
+  }
+}

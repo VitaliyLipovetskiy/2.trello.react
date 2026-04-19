@@ -1,0 +1,57 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+.home {
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  text-align: center;
+  color: $primary-color;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container {
+  display: grid;
+  justify-self: center;
+  grid-template-columns: 180px 180px 180px 180px 180px;
+  grid-template-rows: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  justify-content: center;
+
+  @include onLargeDesktop {
+    grid-template-columns: 180px 180px 180px 180px 180px;
+  }
+
+  @include onSmallDesktop {
+    grid-template-columns: 180px 180px 180px 180px;
+  }
+
+  @include onLargeTablet {
+    grid-template-columns: 180px 180px 180px;
+  }
+
+  @include onSmallTablet {
+    grid-template-columns: 180px 180px;
+  }
+
+  @include onMobile {
+    grid-template-columns: 180px;
+  }
+}
+
+.board_add {
+  width: 180px;
+  height: 150px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: $glass-blur-light;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+  font-weight: bold;
+  color: $primary-color;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}

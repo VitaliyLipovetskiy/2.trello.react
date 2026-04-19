@@ -1,0 +1,95 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+@include btn__action('remove', 3px, 3px, 15px);
+
+
+.list_wrapper {
+  list-style: none;
+  height: 100%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  position: relative;
+  background-color: $glass-blur;
+  color: $primary-color;
+  border: $glass-border;
+  margin: 5px;
+  padding: 8px;
+  border-radius: 16px;
+  gap: 4px;
+  box-shadow: $glass-shadow;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: $glass-shadow, $glass-glow;
+  }
+
+  @include tooltip;
+}
+
+.list_title {
+  margin: 6px 24px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid transparent;
+
+  & input {
+    padding: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    display: block;
+    border: none;
+    color: $primary-color;
+    background: transparent;
+  }
+}
+
+@include error;
+
+.list_title_readonly input {
+  background-color: transparent;
+}
+
+.list_title_write input {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  backdrop-filter: $glass-blur-light;
+}
+
+.card_wrapper {
+  &.dragging {
+    opacity: 0.3;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+  overflow-y: auto;
+  gap: 4px;
+
+  padding-top: 1px;
+  padding-inline-start: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+}

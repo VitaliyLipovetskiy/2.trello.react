@@ -1,0 +1,15 @@
+export enum ActionType {
+  GET_ALL_BOARDS = 'boards/get-all',
+  GET_BOARD_BY_ID = 'boards/get-by-id',
+  CREATE_BOARD = 'boards/create',
+  UPDATE_BOARD = 'boards/update',
+  REMOVE_BOARD = 'boards/remove',
+  CREATE_LIST = 'boards/create-list',
+  UPDATE_LIST = 'boards/update-list',
+  REMOVE_LIST = 'boards/remove-list',
+  CREATE_CARD = 'boards/create-card',
+  UPDATE_CARD = 'boards/update-card',
+  UPDATE_GROUP_CARDS = 'boards/update-group-cards',
+  UPDATE_GROUP_LISTS = 'boards/update-group-lists',
+  REMOVE_CARD = 'boards/remove-card',
+}

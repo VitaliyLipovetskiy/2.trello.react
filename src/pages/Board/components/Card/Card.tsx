@@ -1,110 +1,30 @@
-import React, { useRef, useState } from 'react';
-import { updateCardById } from '../../../../services/services';
-import { IUpdateCard } from '../../../../common/interfaces';
-import { validateTitle } from '../../../../utils/validates';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Tooltip } from 'react-tooltip';
-import './card.scss';
+import React from 'react';
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { setCard } from '../../../../store/board/reducer';
+import s from './card.module.scss';
+import { Link } from 'react-router-dom';
 
-type CardTitleProps = {
-  boardId: number;
-  listId: number;
-  cardId: number;
-  title: string;
-  handleUpdateCard: () => void;
-  handleRemoveCard: (cardId: number) => void;
-};
+export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) => {
+  const dispatch = useAppDispatch();
+  const { boardSlot } = useAppSelector((state) => state.board);
+  const cardSlot = boardSlot?.lists
+    ?.find((list) => list.id === listId)
+    ?.cardSlots.find((cardSlot) => cardSlot.card?.id === cardId);
 
-export const Card = (props: CardTitleProps) => {
-  const [readOnly, setReadOnly] = useState(true);
-  const [title, setTitle] = useState(props.title);
-  const [errors, setErrors] = useState<string[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-    const titleErrors = validateTitle(e.target.value);
-    setErrors(titleErrors);
-  };
-
-  const updateCard = async () => {
-    const cardData: IUpdateCard = {
-      title: title.trim(),
-      list_id: props.listId,
-    };
-    let { result } = await updateCardById(props.boardId, props.cardId, cardData);
-    return result;
-  };
-
-  const handleOnBlurTitle = () => {
-    if (errors.length !== 0) {
-      setDefaultValues();
-      toast.warning('Оновлення карточки скасовано');
-      return;
-    }
-    if (title.trim() === props.title) {
-      return;
-    }
-    updateCard()
-      .then((result) => {
-        if (result === 'Updated') {
-          props.handleUpdateCard();
-          toast.success('Карточку оновлено успішно');
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        toast.error(error);
-      });
-  };
-
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      inputRef.current?.blur();
-    }
-    if (e.key === 'Escape') {
-      setDefaultValues();
-    }
-  };
-
-  const setDefaultValues = () => {
-    setTitle(props.title);
-    setErrors([]);
-    setReadOnly(true);
+  const handleClickCard = (e: React.MouseEvent<HTMLInputElement>) => {
+    const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
+    dispatch(setCard({ cardSlot, listSlot }));
   };
 
   return (
-    <div>
-      <div className={`${readOnly ? 'board-card-readonly' : 'board-card-edit'} board-card`}>
-        <button
-          data-tooltip-id="tooltip-remove-card"
-          type="button"
-          className="board-card-btn-remove"
-          aria-label="Видалити картку"
-          onClick={() => props.handleRemoveCard(props.cardId)}
-        >
-          &times;
-        </button>
-        <Tooltip id="tooltip-remove-card" className="tooltip" content="Видалити картку!" place="left" />
-        <input
-          type={'text'}
-          value={title}
-          required
-          readOnly={readOnly}
-          autoFocus={!readOnly}
-          ref={inputRef}
-          onClick={() => setReadOnly(false)}
-          onChange={handleChangeTitle}
-          onBlur={handleOnBlurTitle}
-          onKeyUp={handleKeyUpEnter}
-        />
-      </div>
-      <div className={'error'} hidden={errors.length === 0}>
-        {errors.map((e) => (
-          <p key={e}>{e}</p>
-        ))}
-      </div>
+    <div className={s.card}>
+      {cardSlot?.card ? (
+        <Link to={`card/${cardSlot.card.id}`}>
+          <input type={'text'} value={cardSlot?.card?.title || ''} required readOnly onClick={handleClickCard} />
+        </Link>
+      ) : (
+        <input type={'text'}></input>
+      )}
     </div>
   );
 };

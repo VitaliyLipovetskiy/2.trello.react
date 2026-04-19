@@ -1,0 +1,94 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+.list_add {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  background: transparent;
+  border: none;
+  margin: 5px;
+  border-radius: 16px;
+}
+
+.list_new {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 16px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: $glass-blur;
+  border: $glass-border;
+
+  & input {
+    padding: 10px;
+    border-radius: 8px;
+    border: $glass-border;
+    background: rgba(255, 255, 255, 0.08);
+    color: $primary-color;
+    font-size: 16px;
+  }
+}
+
+@include error;
+@include tooltip;
+
+.list__btn {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+
+  button {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: $glass-border;
+    transition: all 0.3s ease;
+  }
+
+  & .list__btn_accept {
+    background: $secondary-background;
+    color: white;
+
+    &:hover {
+      background: $secondary-background-hover;
+      box-shadow: $glass-glow;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  & .list__btn_close {
+    background: rgba(255, 255, 255, 0.06);
+    color: $primary-color;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+}
+
+.list__btn_add {
+  display: flex;
+  flex-direction: row;
+  min-width: 280px;
+  padding: 10px;
+  font-size: 16px;
+  align-items: center;
+  color: $primary-color;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: $glass-blur-light;
+  border: $glass-border;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: $glass-glow;
+    cursor: pointer;
+  }
+}

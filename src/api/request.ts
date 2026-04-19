@@ -5,7 +5,7 @@ const instance = axios.create({
   baseURL: api.baseURL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: 'Bearer 123', // до цього ми ще повернемося якось потім
+    Authorization: `Bearer ${process.env.REACT_APP_API_TOKEN ?? ''}`,
   },
 });
 
