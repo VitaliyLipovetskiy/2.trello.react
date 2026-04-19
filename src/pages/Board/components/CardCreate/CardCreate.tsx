@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
-import { ICard, ICardCreate } from '../../../../common/interfaces';
+import { ICardCreate } from '../../../../common/interfaces';
 import { addCard } from '../../../../store/board/reducer';
-import { toast } from 'react-toastify';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { boardAction } from '../../../../store/actions';
+import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './card-create.module.scss';
 
@@ -17,13 +17,14 @@ export const CardCreate = ({ listId }: { listId: number }) => {
   const [isCardNew, setIsCardNew] = useState(false);
   const { errors, touched, setTouched } = useValidation(title);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isCardNew) {
       setTitle('');
       setTouched(false);
     }
-  }, [isCardNew, setTitle, setTouched]);
+  }, [isCardNew, setTouched]);
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.target.value);
@@ -32,29 +33,19 @@ export const CardCreate = ({ listId }: { listId: number }) => {
 
   const handleAcceptCreateNewCard = async (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (!boardSlot || !listSlot) return;
     const data: ICardCreate = {
       title,
-      list_id: listSlot!.id,
-      position: listSlot!.cardSlots.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
+      list_id: listSlot.id,
+      position: listSlot.cardSlots.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
     };
-    try {
-      const { result, id } = await dispatch(boardAction.createCard({ id: boardSlot!.id, data })).unwrap();
-      if (result === 'Created') {
-        const card: ICard = { id, title, position: data.position, users: [] };
-        dispatch(addCard({ listId: listSlot!.id, card }));
-        toast.success(`Карточка ${title} створена успішно`);
-      } else {
-        console.log(`Карточка ${title} не створена`);
-        toast.error(`Карточка ${title} не створена`);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        throw error;
-      }
-    }
+    await dispatchWithToast(
+      dispatch(boardAction.createCard({ id: boardSlot.id, data })).unwrap(),
+      'Created',
+      `Карточка ${title} створена успішно`,
+      `Карточка ${title} не створена`,
+      ({ id }) => dispatch(addCard({ listId: listSlot.id, card: { id, title, position: data.position, users: [] } }))
+    );
     setDefaultValues();
   };
 
@@ -64,7 +55,7 @@ export const CardCreate = ({ listId }: { listId: number }) => {
     setIsCardNew(false);
   };
 
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Escape') {
       setDefaultValues();
     }
@@ -73,7 +64,7 @@ export const CardCreate = ({ listId }: { listId: number }) => {
   const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else if (e.relatedTarget.className !== s.card__btn_accept) {
+    } else if (e.relatedTarget !== acceptButtonRef.current) {
       setDefaultValues();
     }
   };
@@ -89,25 +80,26 @@ export const CardCreate = ({ listId }: { listId: number }) => {
             required
             autoFocus
             onChange={handleChangeTitle}
-            onKeyUp={handleKeyUpEnter}
+            onKeyDown={handleKeyDown}
             onBlur={handleBlurTitle}
           />
-          <div className={s.error} hidden={errors.length === 0}>
+          <div className={s.error} hidden={!touched || errors.length === 0}>
             {errors.map((e) => (
               <p key={e}>{e}</p>
             ))}
           </div>
           <div className={s.card__btn}>
             <button
+              ref={acceptButtonRef}
               className={`${s.card__btn_accept} ${!touched || errors.length > 0 ? s.disabled : ''}`}
               disabled={!touched || errors.length > 0}
               onMouseDown={handleAcceptCreateNewCard}
             >
               Додати картку
             </button>
-            <Tooltip id="tooltip-create-card" className="tooltip" content="Скасувати створення картки!" place="left" />
+            <Tooltip id={`tooltip-create-card-${listId}`} className="tooltip" content="Скасувати створення картки!" place="left" />
             <button
-              data-tooltip-id="tooltip-create-card"
+              data-tooltip-id={`tooltip-create-card-${listId}`}
               className={s.card__btn_close}
               onMouseDown={() => setDefaultValues()}
             >

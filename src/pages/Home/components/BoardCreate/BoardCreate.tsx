@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
 import { IBoard } from '../../../../common/interfaces';
 import { addBoard } from '../../../../store/board/reducer';
-import { toast } from 'react-toastify';
 import { useAppDispatch } from '../../../../store/hooks';
 import { boardAction } from '../../../../store/actions';
+import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './board-create.module.scss';
 
 export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
@@ -28,24 +28,14 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
 
   const handleAcceptCreateBoard = async (e: React.MouseEvent) => {
     e.preventDefault();
-    try {
-      const { result, id } = await dispatch(boardAction.createBoard(title)).unwrap();
-      if (result === 'Created') {
-        const board: IBoard = { id, title, lists: [] };
-        dispatch(addBoard(board));
-        toast.success(`Дошка ${title} створена успішно`);
-      } else {
-        console.log(`Дошка ${title} не створена`);
-        toast.error(`Дошка ${title} не створена`);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        throw error;
-      }
-    }
+    if (errors.length > 0) return;
+    await dispatchWithToast(
+      dispatch(boardAction.createBoard(title)).unwrap(),
+      'Created',
+      `Дошка ${title} створена успішно`,
+      `Дошка ${title} не створена`,
+      ({ id }) => dispatch(addBoard({ id, title, lists: [] } as IBoard))
+    );
     onClose();
   };
 
@@ -54,7 +44,7 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
     setTouched(true);
   };
 
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputRef.current) {
       inputRef.current.blur();
     }
@@ -63,7 +53,7 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className={s.modals_wrapper}>
       <div className={s.content}>
-        <button className={s.btn__close} onClick={onClose} onKeyDown={onClose}>
+        <button className={s.btn__close} onClick={onClose}>
           <span></span>
           <span></span>
         </button>
@@ -79,9 +69,9 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
             autoFocus
             onChange={handleChangeTitle}
             onBlur={() => buttonRef.current?.focus()}
-            onKeyUp={handleKeyUpEnter}
+            onKeyDown={handleKeyDown}
           />
-          <div className={s.error} hidden={!touched && errors.length === 0}>
+          <div className={s.error} hidden={!touched || errors.length === 0}>
             {errors.map((e) => (
               <p key={e}>{e}</p>
             ))}

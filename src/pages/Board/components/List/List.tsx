@@ -1,9 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '../Card/Card';
 import { CardCreate } from '../CardCreate/CardCreate';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
+import { ConfirmModal, useConfirm } from '../../../../common/components';
+import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import {
   hideCardDragged,
@@ -14,20 +16,27 @@ import {
   updateList,
 } from '../../../../store/board/reducer';
 import { boardAction } from '../../../../store/actions';
-import { Outlet } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
+import colors from '../../../../styles/variables.module.scss';
 import { ICardsUpdate } from '../../../../common/interfaces';
 
 export const List = ({ id }: { id: number }) => {
   const dispatch = useAppDispatch();
-  const { boardSlot } = useAppSelector((state) => state.board);
+  const listSlot = useAppSelector((state) => state.board.boardSlot?.lists?.find((list) => list.id === id));
+  const boardSlot = useAppSelector((state) => state.board.boardSlot);
   const [titleReadOnly, setTitleReadOnly] = useState(true);
-  const listSlot = boardSlot?.lists?.find((list) => list.id === id);
   const [title, setTitle] = useState(listSlot?.title || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const { errors, touched, setTouched } = useValidation(title);
   const cardElementsRef = useRef<HTMLLIElement[]>([]);
+  const [draggingCardId, setDraggingCardId] = useState<number | null>(null);
+  const escapeCancelledRef = useRef(false);
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
+
+  useEffect(() => {
+    setTitle(listSlot?.title || '');
+  }, [listSlot?.title]);
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -38,59 +47,55 @@ export const List = ({ id }: { id: number }) => {
   const handleOnBlurTitle = async (e: React.FocusEvent<HTMLInputElement>) => {
     e.preventDefault();
     setTitleReadOnly(true);
+    if (escapeCancelledRef.current) {
+      escapeCancelledRef.current = false;
+      return;
+    }
     if (!listSlot || !boardSlot) return;
     if (errors.length !== 0) {
       setTitle(listSlot.title);
       toast.warning('Оновлення списка скасовано');
     } else if (listSlot.title !== title.trim()) {
-      try {
-        const { result } = await dispatch(
+      await dispatchWithToast(
+        dispatch(
           boardAction.updateListById({ boardId: boardSlot.id, listId: id, data: { title: title.trim() } })
-        ).unwrap();
-        if (result === 'Updated') {
-          dispatch(updateList({ listId: id, title }));
-          toast.success(`Назва списка ${title} оновлена успішно`);
-        } else {
-          console.log(`Назва списка ${title} не оновлена`);
-          toast.error(`Назва списка ${title} не оновлена`);
-        }
-      } catch (error) {
-        console.log(error);
-        if (error instanceof Error) {
-          toast.error(error.message);
-        }
-      }
+        ).unwrap(),
+        'Updated',
+        `Назва списка ${title} оновлена успішно`,
+        `Назва списка ${title} не оновлена`,
+        () => dispatch(updateList({ listId: id, title: title.trim() }))
+      );
     }
   };
 
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
+      inputRef.current?.blur();
+    }
+    if (e.key === 'Escape') {
+      escapeCancelledRef.current = true;
+      setTitle(listSlot?.title || '');
+      setTouched(false);
+      inputRef.current?.blur();
     }
   };
 
   const handleClickRemoveList = async (e: React.MouseEvent) => {
     e.preventDefault();
-    try {
-      const { result } = await dispatch(boardAction.remoteListById({ boardId: boardSlot!.id, listId: id })).unwrap();
-      if (result === 'Deleted') {
-        dispatch(removeList(id));
-        toast.success(`Список ${listSlot?.title} видалений успішно`);
-      } else {
-        console.log(`Список ${listSlot?.title} не видалений`);
-        toast.error(`Список ${listSlot?.title} не видалений`);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      }
-    }
+    const confirmed = await confirm(`Видалити список «${listSlot?.title}»?`);
+    if (!confirmed) return;
+    if (!boardSlot) return;
+    await dispatchWithToast(
+      dispatch(boardAction.removeListById({ boardId: boardSlot.id, listId: id })).unwrap(),
+      'Deleted',
+      `Список ${listSlot?.title} видалений успішно`,
+      `Список ${listSlot?.title} не видалений`,
+      () => dispatch(removeList(id))
+    );
   };
 
   const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
     const target = e.currentTarget as HTMLLIElement;
     const cardId = target.dataset['id'];
     dispatch(setCardDragged({ cardId: cardId ? +cardId : undefined, listId: listSlot?.id }));
@@ -99,7 +104,7 @@ export const List = ({ id }: { id: number }) => {
       return;
     }
     e.dataTransfer.setData('card_id', cardId || '');
-    e.dataTransfer.setData('list_id', listSlot?.id.toString() || '');
+    e.dataTransfer.setData('source_list_id', listSlot?.id.toString() || '');
     e.dataTransfer.effectAllowed = 'move';
 
     const rect = target.getBoundingClientRect();
@@ -128,7 +133,7 @@ export const List = ({ id }: { id: number }) => {
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 6;
 
-      ctx.fillStyle = '#3b3b3b';
+      ctx.fillStyle = colors.primaryBackgroundElement;
       const x = -rect.width / 2;
       const y = -rect.height / 2;
       const w = rect.width;
@@ -150,7 +155,7 @@ export const List = ({ id }: { id: number }) => {
       ctx.shadowColor = 'transparent';
 
       if (text) {
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = colors.primaryColor;
         ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textBaseline = 'middle';
         ctx.fillText(text, -rect.width / 2 + 12, 0);
@@ -169,14 +174,12 @@ export const List = ({ id }: { id: number }) => {
       }, 100);
     }
 
-    setTimeout(() => {
-      target.classList.add('dragging');
-    }, 0);
+    const id = cardId ? +cardId : null;
+    setTimeout(() => setDraggingCardId(id), 0);
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    const target = e.currentTarget as HTMLLIElement;
-    target.classList.remove('dragging');
+  const handleDragEnd = () => {
+    setDraggingCardId(null);
     dispatch(setCardDragged({ cardId: undefined, listId: undefined }));
   };
 
@@ -188,7 +191,7 @@ export const List = ({ id }: { id: number }) => {
 
     if (!listSlot) return;
 
-    const elements = cardElementsRef.current;
+    const elements = cardElementsRef.current.filter(Boolean);
 
     const targetIndex = elements.findIndex((el) => {
       const rect = el.getBoundingClientRect();
@@ -218,48 +221,59 @@ export const List = ({ id }: { id: number }) => {
     if (listSlot) {
       dispatch(hidePlaceholderSlot({ listSlot }));
     }
-    console.log('handleDragLeave');
     dispatch(hideCardDragged());
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
-    const draggedCardId = e.dataTransfer?.getData('card_id');
-    const sourceListId = e.dataTransfer?.getData('list_id');
+    if (
+      !e.dataTransfer ||
+      !e.dataTransfer?.types?.includes('card_id') ||
+      !e.dataTransfer.types?.includes('source_list_id')
+    ) {
+      return;
+    }
+    const draggedCardId = +e.dataTransfer.getData('card_id');
+    const sourceListId = +e.dataTransfer.getData('source_list_id');
 
     if (!boardSlot || !listSlot) {
       return;
     }
 
-    const placeholderHidden = listSlot.cardSlots.some((slot) => !slot.card && !slot.view);
-    if (placeholderHidden) {
+    const placeholder = listSlot.cardSlots.find((slot) => !slot.card && slot.view);
+    if (!placeholder) {
       return;
     }
 
-    const data: ICardsUpdate[] = listSlot.cardSlots
-      .filter((slot) => slot.card?.id !== +draggedCardId)
-      .map((slot, index) => ({
-        card: slot.card,
-        position: index + 1,
-      }))
-      .filter((slot) => slot.position !== slot.card?.position)
-      .map((slot) => ({
-        id: slot.card?.id || +draggedCardId,
-        position: slot.position,
-        list_id: listSlot.id,
-      }));
+    const placeholderPosition = placeholder.position;
 
-    if (+sourceListId !== listSlot.id) {
-      const sourceList = boardSlot.lists?.find((l) => l.id === +sourceListId);
+    const otherSlots = listSlot.cardSlots
+      .filter((slot) => !!slot.card && slot.card.id !== draggedCardId)
+      .sort((a, b) => a.position - b.position);
+
+    const insertIndex = otherSlots.filter((slot) => slot.position < placeholderPosition).length;
+    const draggedNewPos = insertIndex + 1;
+
+    const data: ICardsUpdate[] = [{ id: draggedCardId, position: draggedNewPos, list_id: listSlot.id }];
+
+    otherSlots.forEach((slot, i) => {
+      const newPos = i < insertIndex ? i + 1 : i + 2;
+      if (slot.card && newPos !== slot.card.position) {
+        data.push({ id: slot.card.id, position: newPos, list_id: listSlot.id });
+      }
+    });
+
+    // For cross-list drag: renumber remaining cards in the source list
+    if (sourceListId !== listSlot.id) {
+      const sourceList = boardSlot.lists?.find((l) => l.id === sourceListId);
       if (sourceList) {
-        // Беремо всі картки вихідного списку, крім тієї, що перетягнули і де помінявся номер позиції
         const sourceUpdates = sourceList.cardSlots
-          .filter((slot) => !!slot.card && slot.card.id !== +draggedCardId)
+          .filter((slot) => !!slot.card && slot.card.id !== draggedCardId)
           .map((slot, index) => ({
             card: slot.card,
-            position: index + 1, // Перераховуємо позиції 1, 2, 3...
+            position: index + 1,
           }))
-          .filter((slot) => slot.position !== slot.card!.position)
+          .filter((slot) => slot.card && slot.position !== slot.card.position)
           .map((slot) => ({
             id: slot.card!.id,
             position: slot.position,
@@ -269,25 +283,22 @@ export const List = ({ id }: { id: number }) => {
       }
     }
 
-    try {
-      const { result } = await dispatch(boardAction.updateGroupCards({ boardId: boardSlot.id, data })).unwrap();
-      if (result === 'Updated') {
-        dispatch(boardAction.getBoardById(boardSlot.id));
-        toast.success(`Карточка ${draggedCardId} переміщена успішно`);
-      } else {
-        console.log(`Карточка ${draggedCardId} не переміщена`);
-        toast.error(`Карточка${draggedCardId} не переміщена`);
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      }
-    }
+    const succeeded = await dispatchWithToast(
+      dispatch(boardAction.updateGroupCards({ boardId: boardSlot.id, data })).unwrap(),
+      'Updated',
+      `Карточка ${draggedCardId} переміщена успішно`,
+      `Карточка ${draggedCardId} не переміщена`,
+      () => dispatch(boardAction.getBoardById(boardSlot.id))
+    );
 
-    dispatch(hidePlaceholderSlot({ listSlot }));
+    if (!succeeded) dispatch(hidePlaceholderSlot({ listSlot }));
     dispatch(setCardDragged({ cardId: undefined, listId: undefined }));
   };
+
+  const cardCount = listSlot?.cardSlots?.length || 0;
+  useEffect(() => {
+    cardElementsRef.current = cardElementsRef.current.slice(0, cardCount);
+  }, [cardCount]);
 
   return (
     <div
@@ -298,11 +309,11 @@ export const List = ({ id }: { id: number }) => {
       onDrop={handleDrop}
     >
       <div className={s.list}>
-        <button className={s.btn__remove} data-tooltip-id="tooltip-remove-list" onClick={handleClickRemoveList}>
+        <button className={s.btn__remove} data-tooltip-id={`tooltip-remove-list-${id}`} onClick={handleClickRemoveList}>
           <span></span>
           <span></span>
         </button>
-        <Tooltip id="tooltip-remove-list" className={s.tooltip} content="Видалити список!" place="left" />
+        <Tooltip id={`tooltip-remove-list-${id}`} className={s.tooltip} content="Видалити список!" place="left" />
         <div className={`${titleReadOnly ? s.list_title_readonly : s.list_title_write} ${s.list_title}`}>
           <input
             name={'title'}
@@ -315,7 +326,7 @@ export const List = ({ id }: { id: number }) => {
             onClick={() => setTitleReadOnly(false)}
             onChange={handleChangeTitle}
             onBlur={handleOnBlurTitle}
-            onKeyUp={handleKeyUpEnter}
+            onKeyDown={handleKeyDown}
           />
           <div className={s.error} hidden={!touched && errors.length === 0}>
             {errors.map((e) => (
@@ -324,26 +335,22 @@ export const List = ({ id }: { id: number }) => {
           </div>
         </div>
         <ol className={s.container}>
-          {listSlot?.cardSlots?.map((cardSlot) =>
+          {listSlot?.cardSlots?.map((cardSlot, index) =>
             cardSlot.card ? (
               <li
-                className={s.card_wrapper}
+                className={`${s.card_wrapper}${draggingCardId === cardSlot.card.id ? ' dragging' : ''}`}
                 key={cardSlot.card.id}
                 draggable={true}
                 data-type="card"
                 data-id={cardSlot.card.id}
                 data-position={cardSlot.position}
                 ref={(el) => {
-                  if (el) {
-                    cardElementsRef.current.push(el);
-                  }
+                  if (el) cardElementsRef.current[index] = el;
                 }}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                {/*<Link to={`card/${card.id}`} reloadDocument={true} state={{ background: location }}>*/}
                 <Card listId={listSlot.id} cardId={cardSlot.card.id} />
-                {/*</Link>*/}
               </li>
             ) : (
               <li
@@ -358,9 +365,11 @@ export const List = ({ id }: { id: number }) => {
             )
           )}
         </ol>
-        <Outlet />
         {listSlot && <CardCreate listId={listSlot.id} />}
       </div>
+      {confirmState.isOpen && (
+        <ConfirmModal message={confirmState.message} onConfirm={handleConfirm} onCancel={handleCancel} />
+      )}
     </div>
   );
 };

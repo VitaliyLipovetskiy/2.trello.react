@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
 import { boardAction } from '../../../../store/actions';
-import { IList, IListCreate } from '../../../../common/interfaces';
+import { IListCreate } from '../../../../common/interfaces';
 import { addList } from '../../../../store/board/reducer';
-import { toast } from 'react-toastify';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './list-create.module.scss';
 
 export const ListCreate = () => {
@@ -49,34 +49,23 @@ export const ListCreate = () => {
 
   const handleAcceptNewList = async (e: React.MouseEvent) => {
     e.preventDefault();
+    const savedTitle = title;
     setDefaultValues();
     const listData: IListCreate = {
-      title,
-      position: (boardSlot?.lists?.length || 0) + 1,
+      title: savedTitle,
+      position: Math.max(0, ...(boardSlot?.lists?.map((l) => l.position) || [])) + 1,
     };
-    try {
-      const { result, id } = await dispatch(
-        boardAction.createList({ boardId: boardSlot!.id, data: listData })
-      ).unwrap();
-      if (result === 'Created') {
-        const list: IList = { id, title, position: listData.position, cards: [] };
-        dispatch(addList(list));
-        toast.success('Список створено успішно');
-      } else {
-        console.log('Список не вдалося створити');
-        toast.error('Список не вдалося створити');
-      }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        throw error;
-      }
-    }
+    if (!boardSlot) return;
+    await dispatchWithToast(
+      dispatch(boardAction.createList({ boardId: boardSlot.id, data: listData })).unwrap(),
+      'Created',
+      'Список створено успішно',
+      'Список не вдалося створити',
+      ({ id }) => dispatch(addList({ id, title: savedTitle, position: listData.position, cards: [] }))
+    );
   };
 
-  const handleKeyUpEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && errors.length === 0) {
       buttonRef.current?.focus();
     }
@@ -88,7 +77,7 @@ export const ListCreate = () => {
   const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>) => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
-    } else if (e.relatedTarget.className !== 'list__btn_accept') {
+    } else if (e.relatedTarget !== buttonRef.current) {
       setDefaultValues();
     }
   };
@@ -98,7 +87,6 @@ export const ListCreate = () => {
       {listNew ? (
         <div className={s.list_new}>
           <input
-            // className={'board-list-new-input'}
             name={'listTitle'}
             type={'text'}
             value={title}
@@ -106,10 +94,10 @@ export const ListCreate = () => {
             required
             autoFocus
             onChange={handleChangeTitle}
-            onKeyUp={handleKeyUpEnter}
+            onKeyDown={handleKeyDown}
             onBlur={handleBlurTitle}
           />
-          <div className={s.error} hidden={errors.length === 0}>
+          <div className={s.error} hidden={!touched || errors.length === 0}>
             {errors.map((e) => (
               <p key={e}>{e}</p>
             ))}
@@ -120,18 +108,17 @@ export const ListCreate = () => {
               disabled={!touched || errors.length > 0}
               ref={buttonRef}
               onMouseDown={handleAcceptNewList}
-              onClick={handleAcceptNewList}
             >
               Додати список
             </button>
             <Tooltip
-              id="tooltip-update-list-title"
+              id="tooltip-cancel-create-list"
               className={s.tooltip}
-              content="Скасувати зміну назви списку!"
+              content="Скасувати створення списку!"
               place="left"
             />
             <button
-              data-tooltip-id="tooltip-update-list-title"
+              data-tooltip-id="tooltip-cancel-create-list"
               className={s.list__btn_close}
               onMouseDown={() => setDefaultValues()}
             >

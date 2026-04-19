@@ -7,22 +7,26 @@
   right: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
 
   .modal {
     position: fixed;
     display: flex;
     flex-direction: column;
-    background-color: white;
-    border-radius: 10px;
     max-height: 80vh;
     width: 70%;
     max-width: 860px;
     min-width: 480px;
     top: 40%;
     left: 50%;
+    background: rgba(30, 30, 50, 0.85);
+    backdrop-filter: $glass-blur;
+    border: $glass-border;
     transform: translate(-50%, -50%);
+    border-radius: 16px;
+    box-shadow: $glass-shadow;
+    color: $primary-color;
 
     &::-webkit-scrollbar {
       width: 0;
@@ -39,7 +43,7 @@
     flex: 0 0;
     min-height: 56px;
     overflow: hidden;
-    border-bottom: 1px solid $secondary-color;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .modal_body {
@@ -76,11 +80,13 @@ body.overflow {
       font-size: 18px;
       border: none;
       font-weight: 1000;
+      background: transparent;
+      color: $primary-color;
     }
 
     & label {
       padding-left: 8px;
-      color: $primary-background-element;
+      color: rgba(255, 255, 255, 0.5);
     }
   }
 
@@ -88,6 +94,8 @@ body.overflow {
     display: flex;
     flex-direction: column;
     margin-top: 10px;
+    border: $glass-border;
+    border-radius: 10px;
 
     &_header {
       display: flex;
@@ -102,8 +110,12 @@ body.overflow {
 
     & textarea {
       padding: 8px;
-      border-radius: 5px;
+      border-radius: 10px;
       resize: none;
+      border: none;
+      min-height: 80px;
+      background: rgba(255, 255, 255, 0.05);
+      color: $primary-color;
     }
 
     & .description_viewer {
@@ -112,8 +124,9 @@ body.overflow {
       cursor: pointer;
       white-space: pre-wrap;
       word-break: break-word;
-      border: 1px solid $secondary-color;
-      border-radius: 5px;
+      border: $glass-border;
+      border-radius: 10px;
+      color: $primary-color;
 
       strong {
         font-weight: 700;
@@ -150,7 +163,7 @@ body.overflow {
         padding: 0.2em 0.4em;
         margin: 0;
         font-size: 85%;
-        background-color: $secondary-color;
+        background-color: rgba(120, 100, 255, 0.3);
         border-radius: 5px;
         font-family: monospace;
       }
@@ -172,9 +185,25 @@ body.overflow {
   & span {
     font-weight: 700;
     text-align: center;
+    color: $primary-color;
   }
 
   & button {
     padding: 5px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: $glass-border;
+    color: $primary-color;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: $secondary-background;
+      cursor: pointer;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   }
 }

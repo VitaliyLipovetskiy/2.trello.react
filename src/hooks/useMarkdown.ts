@@ -1,4 +1,4 @@
-const transform = (value: string | null | undefined) => {
+const transformMarkdown = (value: string | null | undefined): string => {
   if (!value) return '';
 
   const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
@@ -11,19 +11,19 @@ const transform = (value: string | null | undefined) => {
     .replaceAll(/^## (.*?)$/gm, '<h2>$1</h2>')
     .replaceAll(/^### (.*?)$/gm, '<h3>$1</h3>')
     .replaceAll(/(\*\*|__)(.*?)(\*\*|__)/g, '<strong>$2</strong>')
-    .replaceAll(/(\*|_)(.*?)(\*|_)/g, '<em>$2</em>')
+    .replaceAll(/([*_])(.*?)([*_])/g, '<em>$2</em>')
     .replaceAll(/~~(.*?)~~/g, '<del>$1</del>')
     .replaceAll(/`(.*?)`/g, '<code>$1</code>')
-    .replaceAll(/\[(.*?)]\((.*?)\)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
-    .replaceAll(urlPattern, (match, url) => {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    .replaceAll(/\[(.*?)]\((.*?)\)/g, (_, text, url) => {
+      if (!/^https?:\/\//i.test(url)) return text;
+      const safeUrl = url.replaceAll('"', '%22');
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    })
+    .replaceAll(urlPattern, (_, url) => {
+      const safeUrl = url.replaceAll('"', '%22');
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>`;
     })
     .replaceAll('\n', '<br>');
 };
 
-const useMarkdown = (value: string | null | undefined) => {
-  const innerHTML = transform(value);
-  return { innerHTML };
-};
-
-export default useMarkdown;
+export default transformMarkdown;

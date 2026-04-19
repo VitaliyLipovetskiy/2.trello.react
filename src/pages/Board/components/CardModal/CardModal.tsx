@@ -1,15 +1,19 @@
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { clearCard, updateCard } from '../../../../store/board/reducer';
-import React, { MouseEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import { clearCard, removeCard, setCard, updateCard } from '../../../../store/board/reducer';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import useValidation from '../../../../hooks/useValidation';
 import { toast } from 'react-toastify';
 import { ICardUpdate } from '../../../../common/interfaces';
 import { boardAction } from '../../../../store/actions';
 import s from './card-modal.module.scss';
-import { useNavigate } from 'react-router-dom';
-import useMarkdown from '../../../../hooks/useMarkdown';
+import { useNavigate, useParams } from 'react-router-dom';
+import transformMarkdown from '../../../../hooks/useMarkdown';
+import { ConfirmModal, useConfirm } from '../../../../common/components';
+import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 
 export const CardModal = () => {
+  const { cardId } = useParams();
   const navigate = useNavigate();
   const { cardSlot, boardSlot, listSlot } = useAppSelector((state) => state.board);
   const dispatch = useAppDispatch();
@@ -19,29 +23,29 @@ export const CardModal = () => {
   });
   const { errors, setTouched: setTitleTouched, touched: titleTouched } = useValidation(formData.title);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
   const [editingDescription, setEditingDescription] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const { innerHTML } = useMarkdown(formData.description);
+  const innerHTML = useMemo(() => transformMarkdown(formData.description), [formData.description]);
+  const escapeCancelledRef = useRef(false);
+  const confirmOpenRef = useRef(false);
+  confirmOpenRef.current = confirmState.isOpen;
 
   const handleModalClose = useCallback(() => {
     dispatch(clearCard());
     navigate(`/board/${boardSlot?.id}`);
-  }, [dispatch, navigate]);
-
-  const handleClose: MouseEventHandler<HTMLButtonElement> = useCallback(() => {
-    handleModalClose();
-  }, [handleModalClose]);
+  }, [dispatch, navigate, boardSlot?.id]);
 
   useEffect(() => {
     const handleWrapperClick = (event: MouseEvent) => {
       const { target } = event;
       if (target instanceof Node && rootRef.current === target) {
-        console.log('close');
         handleModalClose();
       }
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (confirmOpenRef.current) return;
         handleModalClose();
       }
     };
@@ -52,6 +56,18 @@ export const CardModal = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleModalClose]);
+
+  useEffect(() => {
+    if (!cardSlot && boardSlot?.lists && cardId) {
+      for (const list of boardSlot.lists) {
+        const found = list.cardSlots.find((cs) => cs.card?.id === +cardId);
+        if (found) {
+          dispatch(setCard({ cardSlot: found, listSlot: list }));
+          break;
+        }
+      }
+    }
+  }, [cardSlot, boardSlot, cardId, dispatch]);
 
   useEffect(() => {
     setFormData({
@@ -89,12 +105,12 @@ export const CardModal = () => {
     const { name, value } = e.currentTarget;
     const initialValue = name === 'title' ? cardSlot?.card?.title : cardSlot?.card?.description;
 
-    if (value.trim() === initialValue?.trim()) {
-      return;
-    }
-
     e.stopPropagation();
-    setDefaultValues();
+
+    if (value.trim() !== initialValue?.trim()) {
+      escapeCancelledRef.current = true;
+      setDefaultValues();
+    }
     if (e.currentTarget.tagName === 'TEXTAREA') {
       setEditingDescription(false);
     }
@@ -104,13 +120,17 @@ export const CardModal = () => {
   const handleInputOnBlur = async (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
     setEditingDescription(false);
+    if (escapeCancelledRef.current) {
+      escapeCancelledRef.current = false;
+      return;
+    }
     if (errors.length !== 0) {
       setDefaultValues();
       toast.warning('Оновлення карточки скасовано');
       return;
     }
     if (
-      formData.title.trim() === cardSlot?.card?.title.trim() &&
+      formData.title.trim() === cardSlot?.card?.title?.trim() &&
       formData.description.trim() === cardSlot?.card?.description?.trim()
     ) {
       return;
@@ -120,41 +140,42 @@ export const CardModal = () => {
       description: formData.description?.trim(),
       list_id: listSlot?.id,
     };
-    try {
-      const { result } = await dispatch(
-        boardAction.updateCardById({ boardId: boardSlot!.id, cardId: cardSlot.card!.id, data })
-      ).unwrap();
-      if (result === 'Updated') {
-        dispatch(updateCard({ cardId: cardSlot.card!.id, listId: listSlot!.id, card: data }));
-        toast.success(`Картка ${formData.title} оновлена успішно`);
-      } else {
-        console.log(`Картка ${cardSlot.card!.title} не оновлена`);
-        toast.error(`Картка ${cardSlot.card!.title} не оновлена`);
+    if (!boardSlot || !cardSlot?.card || !listSlot) return;
+    await dispatchWithToast(
+      dispatch(boardAction.updateCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id, data })).unwrap(),
+      'Updated',
+      `Картка ${formData.title} оновлена успішно`,
+      `Картка ${cardSlot.card.title} не оновлена`,
+      () => dispatch(updateCard({ cardId: cardSlot.card!.id, listId: listSlot!.id, card: data }))
+    );
+  };
+
+  const handleDeleteCard = async () => {
+    const confirmed = await confirm(`Видалити картку «${cardSlot?.card?.title}»?`);
+    if (!confirmed) return;
+    if (!boardSlot || !cardSlot?.card || !listSlot) return;
+    await dispatchWithToast(
+      dispatch(boardAction.removeCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id })).unwrap(),
+      'Deleted',
+      'Картка видалена успішно',
+      'Картку не вдалося видалити',
+      () => {
+        dispatch(removeCard({ cardId: cardSlot.card!.id, listId: listSlot!.id }));
+        handleModalClose();
       }
-    } catch (error) {
-      console.log(error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      }
-    }
+    );
   };
 
   const toggleEditDescription = () => {
-    setEditingDescription(true);
-    setTimeout(() => {
-      descriptionRef.current?.focus();
-    });
-  };
-
-  const handleDeleteCard = () => {
-    console.log('handleDeleteCard');
+    flushSync(() => setEditingDescription(true));
+    descriptionRef.current?.focus();
   };
 
   return (
     <div className={s.modals_wrapper} ref={rootRef}>
       <div className={s.modal}>
         <header className={s.modal_header}>
-          <button className={s.btn__close} onClick={handleClose}>
+          <button className={s.btn__close} onClick={handleModalClose}>
             <span></span>
             <span></span>
           </button>
@@ -190,14 +211,20 @@ export const CardModal = () => {
                   ref={descriptionRef}
                   value={formData.description}
                   onChange={handleInputChange}
+                  onFocus={() => setEditingDescription(true)}
                   onBlur={handleInputOnBlur}
                   onKeyDown={handleInputKeyDown}
                 />
               ) : (
                 <div
                   className={s.description_viewer}
+                  role="button"
+                  tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: innerHTML }}
                   onClick={toggleEditDescription}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') toggleEditDescription();
+                  }}
                 ></div>
               )}
             </div>
@@ -211,6 +238,9 @@ export const CardModal = () => {
           </div>
         </div>
       </div>
+      {confirmState.isOpen && (
+        <ConfirmModal message={confirmState.message} onConfirm={handleConfirm} onCancel={handleCancel} />
+      )}
     </div>
   );
 };

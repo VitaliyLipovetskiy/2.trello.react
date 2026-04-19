@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../../api/request';
-import './progress-bar.scss';
+import s from './progress-bar.module.scss';
 
 export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
-  const [showProgressBar, setShowProgressBar] = useState<boolean>(false);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     const requestInterceptor = api.interceptors.request.use(
       (config) => {
-        setShowProgressBar(true);
+        setPending((c) => c + 1);
         return config;
       },
       (error) => {
@@ -17,10 +17,11 @@ export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
     );
     const responseInterceptor = api.interceptors.response.use(
       (config) => {
-        setShowProgressBar(false);
+        setPending((c) => c - 1);
         return config;
       },
       (error) => {
+        setPending((c) => c - 1);
         return Promise.reject(error);
       }
     );
@@ -33,7 +34,7 @@ export const ProgressBar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      {showProgressBar && <div className="loader"></div>}
+      {pending > 0 && <div className={s.loader}></div>}
       {children}
     </>
   );

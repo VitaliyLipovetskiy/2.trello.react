@@ -8,7 +8,7 @@ export const boardApi = createApi({
     baseUrl: api.baseURL,
     prepareHeaders: (headers) => {
       headers.set('Content-Type', 'application/json');
-      headers.set('Authorization', 'Bearer 123');
+      headers.set('Authorization', `Bearer ${process.env.REACT_APP_API_TOKEN ?? ''}`);
       return headers;
     },
   }),

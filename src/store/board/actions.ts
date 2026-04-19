@@ -8,6 +8,7 @@ import {
   ICardUpdate,
   IListCreate,
   IListUpdate,
+  IListsUpdate,
   IResult,
   IResultCreated,
 } from '../../common/interfaces';
@@ -25,7 +26,7 @@ const getBoardById = createAsyncThunk<IBoard, number, AsyncThunkConfig>(
   ActionType.GET_BOARD_BY_ID,
   async (payload, { extra }) => {
     const { api } = extra;
-    return await api.get(`board/${payload}`);
+    return api.get(`board/${payload}`);
   }
 );
 
@@ -33,7 +34,7 @@ const createBoard = createAsyncThunk<IResultCreated, string, AsyncThunkConfig>(
   ActionType.CREATE_BOARD,
   async (payload, { extra }) => {
     const { api } = extra;
-    return await api.post('board', { title: payload });
+    return api.post('board', { title: payload });
   }
 );
 
@@ -41,7 +42,7 @@ const updateBoardById = createAsyncThunk<IResult, { id: number; data: IBoardUpda
   ActionType.UPDATE_BOARD,
   async (payload, { extra }) => {
     const { api } = extra;
-    return await api.put(`board/${payload.id}`, payload.data);
+    return api.put(`board/${payload.id}`, payload.data);
   }
 );
 
@@ -67,10 +68,10 @@ const updateListById = createAsyncThunk<
   AsyncThunkConfig
 >(ActionType.UPDATE_LIST, async (payload, { extra }) => {
   const { api } = extra;
-  return await api.put(`board/${payload.boardId}/list/${payload.listId}`, payload.data);
+  return api.put(`board/${payload.boardId}/list/${payload.listId}`, payload.data);
 });
 
-const remoteListById = createAsyncThunk<IResult, { boardId: number; listId: number }, AsyncThunkConfig>(
+const removeListById = createAsyncThunk<IResult, { boardId: number; listId: number }, AsyncThunkConfig>(
   ActionType.REMOVE_LIST,
   async (payload, { extra }) => {
     const { api } = extra;
@@ -92,18 +93,26 @@ const updateCardById = createAsyncThunk<
   AsyncThunkConfig
 >(ActionType.UPDATE_CARD, async (payload, { extra }) => {
   const { api } = extra;
-  return await api.put(`board/${payload.boardId}/card/${payload.cardId}`, payload.data);
+  return api.put(`board/${payload.boardId}/card/${payload.cardId}`, payload.data);
 });
 
 const updateGroupCards = createAsyncThunk<IResult, { boardId: number; data: ICardsUpdate[] }, AsyncThunkConfig>(
   ActionType.UPDATE_GROUP_CARDS,
   async (payload, { extra }) => {
     const { api } = extra;
-    return await api.put(`board/${payload.boardId}/card`, payload.data);
+    return api.put(`board/${payload.boardId}/card`, payload.data);
   }
 );
 
-const remoteCardById = createAsyncThunk<IResult, { boardId: number; cardId: number }, AsyncThunkConfig>(
+const updateGroupLists = createAsyncThunk<IResult, { boardId: number; data: IListsUpdate[] }, AsyncThunkConfig>(
+  ActionType.UPDATE_GROUP_LISTS,
+  async (payload, { extra }) => {
+    const { api } = extra;
+    return api.put(`board/${payload.boardId}/list`, payload.data);
+  }
+);
+
+const removeCardById = createAsyncThunk<IResult, { boardId: number; cardId: number }, AsyncThunkConfig>(
   ActionType.REMOVE_CARD,
   async (payload, { extra }) => {
     const { api } = extra;
@@ -119,9 +128,10 @@ export {
   removeBoardById,
   createList,
   updateListById,
-  remoteListById,
+  removeListById,
   createCard,
   updateCardById,
   updateGroupCards,
-  remoteCardById,
+  updateGroupLists,
+  removeCardById,
 };

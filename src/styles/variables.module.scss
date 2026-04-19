@@ -1,0 +1,15 @@
+@import 'variables';
+
+:export {
+  primaryColor: $primary-color;
+  secondaryColor: $secondary-color;
+  primaryBackground: $primary-background;
+  primaryBackgroundElement: $primary-background-element;
+  secondaryBackground: $secondary-background;
+  secondaryBackgroundHover: $secondary-background-hover;
+  glass-border: $glass-border;
+  glass-blur: $glass-blur;
+  glass-blur-light: $glass-blur-light;
+  glass-shadow: $glass-shadow;
+  glass-glow: $glass-glow;
+}

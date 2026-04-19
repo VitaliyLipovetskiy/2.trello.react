@@ -12,6 +12,12 @@ export interface IListSlot {
   title: string;
   position: number;
   cardSlots: ICardSlot[];
+  view?: boolean;
+}
+
+export interface IListsUpdate {
+  id: number;
+  position: number;
 }
 
 export interface IListCreate {
