@@ -1,30 +1,32 @@
-import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { useAppDispatch, useAppSelector, useAppStore } from '../../../../store/hooks';
 import { setCard } from '../../../../store/board/reducer';
 import s from './card.module.scss';
 import { Link } from 'react-router-dom';
 
 export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) => {
   const dispatch = useAppDispatch();
-  const { boardSlot } = useAppSelector((state) => state.board);
-  const cardSlot = boardSlot?.lists
-    ?.find((list) => list.id === listId)
-    ?.cardSlots.find((cardSlot) => cardSlot.card?.id === cardId);
+  const store = useAppStore();
+  const title = useAppSelector((state) =>
+    state.board.boardSlot?.lists
+      ?.find((l) => l.id === listId)
+      ?.cardSlots.find((cs) => cs.card?.id === cardId)?.card?.title
+  );
 
-  const handleClickCard = (e: React.MouseEvent<HTMLInputElement>) => {
-    const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
+  if (cardId === undefined || title === undefined) {
+    return <div className={`${s.card} ${s.card_placeholder}`} />;
+  }
+
+  const handleClickCard = () => {
+    const listSlot = store.getState().board.boardSlot?.lists?.find((l) => l.id === listId);
+    const cardSlot = listSlot?.cardSlots.find((cs) => cs.card?.id === cardId);
     dispatch(setCard({ cardSlot, listSlot }));
   };
 
   return (
     <div className={s.card}>
-      {cardSlot?.card ? (
-        <Link to={`card/${cardSlot.card.id}`}>
-          <input type={'text'} value={cardSlot?.card?.title || ''} required readOnly onClick={handleClickCard} />
-        </Link>
-      ) : (
-        <input type={'text'}></input>
-      )}
+      <Link to={`card/${cardId}`} className={s.card_link} onClick={handleClickCard} draggable={false}>
+        <span className={s.card_title}>{title}</span>
+      </Link>
     </div>
   );
 };

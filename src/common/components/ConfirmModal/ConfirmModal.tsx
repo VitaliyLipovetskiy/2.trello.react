@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import s from './confirm-modal.module.scss';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
 
 export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const messageId = useId();
 
   useEffect(() => {
     confirmBtnRef.current?.focus();
@@ -22,15 +23,21 @@ export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onCancel]);
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onCancel();
+  };
+
   return (
-    <div className={s.overlay} onClick={(e) => { e.stopPropagation(); e.preventDefault(); onCancel(); }}>
-      <div className={s.modal} onClick={(e) => e.stopPropagation()}>
-        <p className={s.message}>{message}</p>
+    <div className={s.overlay} onClick={handleOverlayClick}>
+      <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby={messageId}>
+        <p id={messageId} className={s.message}>
+          {message}
+        </p>
         <div className={s.actions}>
-          <button className={s.btn_confirm} ref={confirmBtnRef} onClick={(e) => { e.stopPropagation(); e.preventDefault(); onConfirm(); }}>
+          <button type="button" className={s.btn_confirm} ref={confirmBtnRef} onClick={onConfirm}>
             Підтвердити
           </button>
-          <button className={s.btn_cancel} onClick={(e) => { e.stopPropagation(); e.preventDefault(); onCancel(); }}>
+          <button type="button" className={s.btn_cancel} onClick={onCancel}>
             Скасувати
           </button>
         </div>

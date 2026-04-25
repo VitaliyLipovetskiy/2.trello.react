@@ -30,8 +30,10 @@ export const CardModal = () => {
   const escapeCancelledRef = useRef(false);
   const confirmOpenRef = useRef(false);
   confirmOpenRef.current = confirmState.isOpen;
+  const closingRef = useRef(false);
 
   const handleModalClose = useCallback(() => {
+    closingRef.current = true;
     dispatch(clearCard());
     navigate(`/board/${boardSlot?.id}`);
   }, [dispatch, navigate, boardSlot?.id]);
@@ -58,16 +60,23 @@ export const CardModal = () => {
   }, [handleModalClose]);
 
   useEffect(() => {
-    if (!cardSlot && boardSlot?.lists && cardId) {
-      for (const list of boardSlot.lists) {
-        const found = list.cardSlots.find((cs) => cs.card?.id === +cardId);
-        if (found) {
-          dispatch(setCard({ cardSlot: found, listSlot: list }));
-          break;
-        }
+    if (closingRef.current) return;
+    if (cardSlot || !boardSlot?.id || !boardSlot?.lists || !cardId) return;
+    const numericId = Number(cardId);
+    if (!Number.isFinite(numericId)) {
+      handleModalClose();
+      return;
+    }
+    for (const list of boardSlot.lists) {
+      const found = list.cardSlots.find((cs) => cs.card?.id === numericId);
+      if (found) {
+        dispatch(setCard({ cardSlot: found, listSlot: list }));
+        return;
       }
     }
-  }, [cardSlot, boardSlot, cardId, dispatch]);
+    toast.warning(`Картка ${cardId} не знайдена`);
+    handleModalClose();
+  }, [cardSlot, boardSlot, cardId, dispatch, handleModalClose]);
 
   useEffect(() => {
     setFormData({

@@ -10,6 +10,7 @@ export const useConfirm = () => {
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
   const confirm = (message: string): Promise<boolean> => {
+    resolveRef.current?.(false);
     setState({ isOpen: true, message });
     return new Promise((resolve) => {
       resolveRef.current = resolve;

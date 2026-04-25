@@ -55,5 +55,12 @@
     "prettier": "3.7.4",
     "sass": "^1.97.2"
   },
-  "homepage": "/2.trello.react/"
+  "homepage": "/2.trello.react/",
+  "jest": {
+    "moduleNameMapper": {
+      "^react-router$": "<rootDir>/node_modules/react-router/dist/development/index.js",
+      "^react-router-dom$": "<rootDir>/node_modules/react-router-dom/dist/index.js",
+      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js"
+    }
+  }
 }

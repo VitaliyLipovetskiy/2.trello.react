@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
-import { IBoard } from '../../../../common/interfaces';
 import { addBoard } from '../../../../store/board/reducer';
 import { useAppDispatch } from '../../../../store/hooks';
 import { boardAction } from '../../../../store/actions';
@@ -9,9 +8,9 @@ import s from './board-create.module.scss';
 
 export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
   const [title, setTitle] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const dispatch = useAppDispatch();
   const inputRef = useRef<HTMLInputElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const { errors, touched, setTouched } = useValidation(title || '');
 
   useEffect(() => {
@@ -28,15 +27,20 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
 
   const handleAcceptCreateBoard = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (errors.length > 0) return;
-    await dispatchWithToast(
+    if (errors.length > 0 || submitting) return;
+    setSubmitting(true);
+    const succeeded = await dispatchWithToast(
       dispatch(boardAction.createBoard(title)).unwrap(),
       'Created',
       `Дошка ${title} створена успішно`,
       `Дошка ${title} не створена`,
-      ({ id }) => dispatch(addBoard({ id, title, lists: [] } as IBoard))
+      ({ id }) => dispatch(addBoard({ id, title, lists: [] }))
     );
-    onClose();
+    if (succeeded) {
+      onClose();
+    } else {
+      setSubmitting(false);
+    }
   };
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,10 +54,12 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
+  const disabled = errors.length > 0 || submitting;
+
   return (
     <div className={s.modals_wrapper}>
       <div className={s.content}>
-        <button className={s.btn__close} onClick={onClose}>
+        <button type="button" className={s.btn__close} onClick={onClose}>
           <span></span>
           <span></span>
         </button>
@@ -68,7 +74,6 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
             required
             autoFocus
             onChange={handleChangeTitle}
-            onBlur={() => buttonRef.current?.focus()}
             onKeyDown={handleKeyDown}
           />
           <div className={s.error} hidden={!touched || errors.length === 0}>
@@ -78,9 +83,9 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
           </div>
         </div>
         <button
-          className={`${s.btn__accept} ${!touched || errors.length > 0 ? s.disabled : ''}`}
-          disabled={errors.length > 0}
-          ref={buttonRef}
+          type="button"
+          className={`${s.btn__accept} ${!touched || disabled ? s.disabled : ''}`}
+          disabled={disabled}
           onClick={handleAcceptCreateBoard}
         >
           Створити

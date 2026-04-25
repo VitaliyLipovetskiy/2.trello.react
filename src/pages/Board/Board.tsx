@@ -4,11 +4,12 @@ import { ListCreate, List } from './components';
 import { IBoardUpdate, IListSlot, IListsUpdate } from '../../common/interfaces';
 import { ToastContainer, toast } from 'react-toastify';
 import { ProgressBar } from '../../common/components';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector, useAppStore } from '../../store/hooks';
 import { boardAction } from '../../store/actions';
 import useValidation from '../../hooks/useValidation';
 import { dispatchWithToast } from '../../common/utils/dispatchWithToast';
 import { clearListDragged, hideListPlaceholder, setListDragged, showListPlaceholder } from '../../store/board/reducer';
+import { isListDrag, setActiveDragType } from '../../common/utils/dragState';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './board.module.scss';
 import colors from '../../styles/variables.module.scss';
@@ -16,6 +17,7 @@ import colors from '../../styles/variables.module.scss';
 const Board = () => {
   const { boardId } = useParams();
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const { boardSlot, listDragged, listPlaceholderBeforeId } = useAppSelector((state) => state.board);
   const [title, setTitle] = useState('');
   const [titleEdit, setTitleEdit] = useState(false);
@@ -24,6 +26,8 @@ const Board = () => {
   const inputColorRef = useRef<HTMLInputElement>(null);
   const colorDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const listElementsRef = useRef<HTMLDivElement[]>([]);
+  const listDragOverRafRef = useRef<number | null>(null);
+  const listPendingClientXRef = useRef<number | null>(null);
   const { errors, touched, setTouched } = useValidation(title);
   const escapeCancelledRef = useRef(false);
 
@@ -34,7 +38,10 @@ const Board = () => {
   }, [boardId, dispatch]);
 
   useEffect(() => {
-    return () => clearTimeout(colorDebounceRef.current);
+    return () => {
+      clearTimeout(colorDebounceRef.current);
+      if (listDragOverRafRef.current !== null) cancelAnimationFrame(listDragOverRafRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -102,9 +109,10 @@ const Board = () => {
     const canvasWidth = rect.width + pad * 2;
     const canvasHeight = rect.height + pad * 2;
 
+    const dpr = window.devicePixelRatio || 1;
     const canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -122,22 +130,25 @@ const Board = () => {
       c.closePath();
     };
 
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.save();
     ctx.translate(canvasWidth / 2, canvasHeight / 2);
     ctx.rotate((2 * Math.PI) / 180);
 
-    // List background with shadow
+    // List background with shadow — темна база + glassmorphism overlay
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
     ctx.shadowBlur = 16;
     ctx.shadowOffsetX = 4;
     ctx.shadowOffsetY = 8;
-    ctx.fillStyle = colors.primaryBackground;
     const lx = -rect.width / 2;
     const ly = -rect.height / 2;
     drawRoundRect(ctx, lx, ly, rect.width, rect.height, 10);
+    ctx.fillStyle = '#211e43';
     ctx.fill();
     ctx.shadowColor = 'transparent';
+    ctx.fillStyle = colors.primaryBackground;
+    ctx.fill();
 
     ctx.fillStyle = colors.primaryColor;
     ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -153,8 +164,10 @@ const Board = () => {
     const btnX = lx + btnMargin;
     const btnW = rect.width - btnMargin * 2;
 
-    ctx.fillStyle = colors.primaryBackground;
     drawRoundRect(ctx, btnX, btnY, btnW, btnH, 10);
+    ctx.fillStyle = '#211e43';
+    ctx.fill();
+    ctx.fillStyle = colors.primaryBackground;
     ctx.fill();
 
     ctx.fillStyle = colors.secondaryBackground;
@@ -176,8 +189,10 @@ const Board = () => {
 
     for (const card of cards) {
       if (cardY + cardH > cardAreaBottom) break;
-      ctx.fillStyle = colors.primaryBackgroundElement;
       drawRoundRect(ctx, lx + cardPad, cardY, rect.width - cardPad * 2, cardH, 5);
+      ctx.fillStyle = '#211e43';
+      ctx.fill();
+      ctx.fillStyle = colors.primaryBackgroundElement;
       ctx.fill();
       ctx.fillStyle = colors.primaryColor;
       ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -188,16 +203,20 @@ const Board = () => {
 
     ctx.restore();
 
-    canvas.style.position = 'fixed';
-    canvas.style.top = '-9999px';
-    document.body.appendChild(canvas);
-    e.dataTransfer.setDragImage(canvas, canvasWidth / 2, canvasHeight / 2);
-    setTimeout(() => canvas.remove(), 100);
+    const img = document.createElement('img');
+    img.src = canvas.toDataURL('image/png');
+    img.width = canvasWidth;
+    img.height = canvasHeight;
+    img.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
+    document.body.appendChild(img);
+    e.dataTransfer.setDragImage(img, canvasWidth / 2, canvasHeight / 2);
+    setTimeout(() => img.remove(), 100);
   };
 
   const handleListDragStart = (e: React.DragEvent, listSlot: IListSlot, index: number) => {
     e.stopPropagation();
-    e.dataTransfer.setData('list_id', listSlot.id.toString());
+    setActiveDragType('list');
+    e.dataTransfer.setData('text/plain', listSlot.id.toString());
     e.dataTransfer.effectAllowed = 'move';
 
     const element = listElementsRef.current[index];
@@ -210,49 +229,75 @@ const Board = () => {
   };
 
   const handleListDragEnd = () => {
+    setActiveDragType(null);
+    if (listDragOverRafRef.current !== null) {
+      cancelAnimationFrame(listDragOverRafRef.current);
+      listDragOverRafRef.current = null;
+    }
     dispatch(clearListDragged());
   };
 
   const handleContainerDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer?.types?.includes('list_id')) return;
+    if (!isListDrag()) return;
     e.preventDefault();
-    if (!listDragged || !boardSlot?.lists) return;
 
-    const sortedLists = [...boardSlot.lists].sort((a, b) => a.position - b.position);
-    const draggedIndex = sortedLists.findIndex((l) => l.id === listDragged.id);
-    const elements = listElementsRef.current.filter(Boolean);
+    listPendingClientXRef.current = e.clientX;
+    if (listDragOverRafRef.current !== null) return;
 
-    const hoverIndex = elements.findIndex((el) => {
-      const rect = el.getBoundingClientRect();
-      return e.clientX < rect.left + rect.width / 2;
+    listDragOverRafRef.current = requestAnimationFrame(() => {
+      listDragOverRafRef.current = null;
+      const clientX = listPendingClientXRef.current;
+      if (clientX == null || !listDragged || !boardSlot?.lists) return;
+
+      const sortedLists = [...boardSlot.lists].sort((a, b) => a.position - b.position);
+      const draggedIndex = sortedLists.findIndex((l) => l.id === listDragged.id);
+      const elements = listElementsRef.current.filter(Boolean);
+
+      const hoverIndex = elements.findIndex((el) => {
+        const rect = el.getBoundingClientRect();
+        return clientX < rect.left + rect.width / 2;
+      });
+
+      // No-op: would stay in the same position
+      const isAdjacentToDragged =
+        hoverIndex === draggedIndex ||
+        hoverIndex === draggedIndex + 1 ||
+        (hoverIndex === -1 && draggedIndex === sortedLists.length - 1);
+
+      if (isAdjacentToDragged) {
+        dispatch(hideListPlaceholder());
+        return;
+      }
+
+      const beforeId = hoverIndex === -1 ? null : sortedLists[hoverIndex].id;
+      if (beforeId === store.getState().board.listPlaceholderBeforeId) return;
+      dispatch(showListPlaceholder({ beforeId }));
     });
-
-    // No-op: would stay in the same position
-    const isAdjacentToDragged =
-      hoverIndex === draggedIndex ||
-      hoverIndex === draggedIndex + 1 ||
-      (hoverIndex === -1 && draggedIndex === sortedLists.length - 1);
-
-    if (isAdjacentToDragged) {
-      dispatch(hideListPlaceholder());
-      return;
-    }
-
-    const beforeId = hoverIndex === -1 ? null : sortedLists[hoverIndex].id;
-    dispatch(showListPlaceholder({ beforeId }));
   };
 
   const handleContainerDragLeave = (e: React.DragEvent) => {
-    if (!e.dataTransfer?.types?.includes('list_id')) return;
-    if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) return;
+    if (!isListDrag()) return;
+    const container = e.currentTarget as HTMLElement;
+    if (e.relatedTarget && container.contains(e.relatedTarget as Node)) return;
+    const rect = container.getBoundingClientRect();
+    if (
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom
+    ) return;
+    if (listDragOverRafRef.current !== null) {
+      cancelAnimationFrame(listDragOverRafRef.current);
+      listDragOverRafRef.current = null;
+    }
     dispatch(hideListPlaceholder());
   };
 
   const handleContainerDrop = async (e: React.DragEvent) => {
-    if (!e.dataTransfer?.types?.includes('list_id')) return;
+    if (!isListDrag()) return;
     e.preventDefault();
 
-    const draggedId = +(e.dataTransfer.getData('list_id') || 0);
+    const draggedId = +(e.dataTransfer.getData('text/plain') || 0);
     const targetBeforeId = listPlaceholderBeforeId;
 
     dispatch(clearListDragged());

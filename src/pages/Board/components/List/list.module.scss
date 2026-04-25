@@ -61,6 +61,9 @@
 }
 
 .card_wrapper {
+  -webkit-user-drag: element;
+  user-select: none;
+
   &.dragging {
     opacity: 0.3;
   }
