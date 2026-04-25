@@ -49,6 +49,12 @@ const Board = () => {
     setBackgroundColor(boardSlot?.custom?.background || '');
   }, [boardSlot?.custom?.background, boardSlot?.title]);
 
+  useEffect(() => {
+    if (titleEdit) {
+      inputTitleRef.current?.focus();
+    }
+  }, [titleEdit]);
+
   const handleOnBlurTitle = async () => {
     setTitleEdit(false);
     if (escapeCancelledRef.current) {
@@ -280,12 +286,7 @@ const Board = () => {
     const container = e.currentTarget as HTMLElement;
     if (e.relatedTarget && container.contains(e.relatedTarget as Node)) return;
     const rect = container.getBoundingClientRect();
-    if (
-      e.clientX >= rect.left &&
-      e.clientX <= rect.right &&
-      e.clientY >= rect.top &&
-      e.clientY <= rect.bottom
-    ) return;
+    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) return;
     if (listDragOverRafRef.current !== null) {
       cancelAnimationFrame(listDragOverRafRef.current);
       listDragOverRafRef.current = null;

@@ -108,9 +108,7 @@ const boardSlice = createSlice({
 
       const draggedCard = state.cardDragged?.card;
       if (draggedCard) {
-        const sourceList = state.boardSlot.lists.find((l) =>
-          l.cardSlots.some((s) => s.card?.id === draggedCard.id)
-        );
+        const sourceList = state.boardSlot.lists.find((l) => l.cardSlots.some((s) => s.card?.id === draggedCard.id));
         if (sourceList?.id === listSlot.id) {
           const currentPos = draggedCard.position;
           if (position === currentPos || position === currentPos + 1) {

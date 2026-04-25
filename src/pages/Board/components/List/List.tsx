@@ -56,6 +56,12 @@ export const List = ({ id }: { id: number }) => {
     setTitle(listSlot?.title || '');
   }, [listSlot?.title]);
 
+  useEffect(() => {
+    if (!titleReadOnly) {
+      inputRef.current?.focus();
+    }
+  }, [titleReadOnly]);
+
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setTitle(e.target.value);
@@ -75,9 +81,7 @@ export const List = ({ id }: { id: number }) => {
       toast.warning('Оновлення списка скасовано');
     } else if (listSlot.title !== title.trim()) {
       await dispatchWithToast(
-        dispatch(
-          boardAction.updateListById({ boardId, listId: id, data: { title: title.trim() } })
-        ).unwrap(),
+        dispatch(boardAction.updateListById({ boardId, listId: id, data: { title: title.trim() } })).unwrap(),
         'Updated',
         `Назва списка ${title} оновлена успішно`,
         `Назва списка ${title} не оновлена`,

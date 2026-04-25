@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import s from './confirm-modal.module.scss';
 
 interface Props {
@@ -24,10 +25,11 @@ export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
   }, [onCancel]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (e.target === e.currentTarget) onCancel();
   };
 
-  return (
+  return createPortal(
     <div className={s.overlay} onClick={handleOverlayClick}>
       <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby={messageId}>
         <p id={messageId} className={s.message}>
@@ -42,6 +44,7 @@ export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

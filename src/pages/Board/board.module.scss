@@ -27,10 +27,16 @@
   a {
     color: $primary-color;
     transition: text-shadow 0.3s ease;
+    white-space: nowrap;
 
     &:hover {
-      text-shadow: 0 0 12px rgba(120, 100, 255, 0.6);
+      text-shadow: 0 0 12px $secondary-background;
     }
+  }
+
+  @include onSmallTablet {
+    width: 90px;
+    padding-left: 8px;
   }
 }
 
@@ -69,7 +75,7 @@
 }
 
 .color_swatch_empty {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: $primary-background;
   border: $glass-border;
 }
 
@@ -78,7 +84,9 @@
   left: 0;
   height: 60px;
   width: 100%;
-  justify-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
@@ -127,6 +135,20 @@
   cursor: pointer;
   background: transparent;
   color: $primary-color;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: calc(100vw - 240px);
+
+  @include onSmallTablet {
+    font-size: 1.2em;
+    max-width: calc(100vw - 180px);
+  }
+
+  @include onMobile {
+    font-size: 1em;
+    max-width: calc(100vw - 200px);
+  }
 }
 
 .title_edit input {

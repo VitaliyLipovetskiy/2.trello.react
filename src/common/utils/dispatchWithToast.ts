@@ -5,7 +5,7 @@ export const dispatchWithToast = async <T extends { result: string }>(
   expected: string,
   successMsg: string,
   errorMsg: string,
-  onSuccess?: (response: T) => void,
+  onSuccess?: (response: T) => void
 ): Promise<boolean> => {
   try {
     const response = await action;

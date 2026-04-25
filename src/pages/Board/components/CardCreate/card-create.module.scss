@@ -23,7 +23,7 @@
     padding: 10px;
     border-radius: 8px;
     border: $glass-border;
-    background: rgba(255, 255, 255, 0.08);
+    background: $third-background-hover;
     backdrop-filter: $glass-blur-light;
     color: $primary-color;
     font-size: 16px;
@@ -61,12 +61,12 @@
   }
 
   & .card__btn_close {
-    background: rgba(255, 255, 255, 0.06);
+    background: $primary-background;
     color: $primary-color;
 
     &:hover {
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.15);
+      background: $primary-background-hover;
     }
   }
 }
@@ -85,6 +85,6 @@
 
   &:hover {
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.08);
+    background: $third-background-hover;
   }
 }

@@ -3,9 +3,11 @@ $secondary-color: rgba(255, 255, 255, 0.4);
 $primary-background: rgba(255, 255, 255, 0.06);
 $primary-background-element: rgba(255, 255, 255, 0.1);
 $secondary-background: rgba(120, 100, 255, 0.6);
+$primary-background-hover: rgba(255, 255, 255, 0.15);
 $secondary-background-hover: rgba(120, 100, 255, 0.8);
+$third-background-hover: rgba(255, 255, 255, 0.08);
 
-$glass-border: 1px solid rgba(255, 255, 255, 0.15);
+$glass-border: 1px solid $primary-background-hover;
 $glass-blur: blur(16px);
 $glass-blur-light: blur(10px);
 $glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);

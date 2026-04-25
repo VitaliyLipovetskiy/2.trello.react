@@ -6,10 +6,10 @@ import { Link } from 'react-router-dom';
 export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) => {
   const dispatch = useAppDispatch();
   const store = useAppStore();
-  const title = useAppSelector((state) =>
-    state.board.boardSlot?.lists
-      ?.find((l) => l.id === listId)
-      ?.cardSlots.find((cs) => cs.card?.id === cardId)?.card?.title
+  const title = useAppSelector(
+    (state) =>
+      state.board.boardSlot?.lists?.find((l) => l.id === listId)?.cardSlots.find((cs) => cs.card?.id === cardId)?.card
+        ?.title
   );
 
   if (cardId === undefined || title === undefined) {

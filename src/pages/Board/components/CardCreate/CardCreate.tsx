@@ -97,7 +97,12 @@ export const CardCreate = ({ listId }: { listId: number }) => {
             >
               Додати картку
             </button>
-            <Tooltip id={`tooltip-create-card-${listId}`} className="tooltip" content="Скасувати створення картки!" place="left" />
+            <Tooltip
+              id={`tooltip-create-card-${listId}`}
+              className="tooltip"
+              content="Скасувати створення картки!"
+              place="left"
+            />
             <button
               data-tooltip-id={`tooltip-create-card-${listId}`}
               className={s.card__btn_close}

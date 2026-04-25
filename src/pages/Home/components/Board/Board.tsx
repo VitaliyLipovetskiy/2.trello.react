@@ -21,14 +21,18 @@ export const Board = ({ board }: { board: IBoard }) => {
       'Deleted',
       `Дошка ${board.title} видалена успішно`,
       `Дошка ${board.title} не видалена`,
-      () => dispatch(removeBoard(board.id)),
+      () => dispatch(removeBoard(board.id))
     );
   };
 
   return (
     <div className={s.board} style={{ background: board.custom?.background }}>
       <h4>{board.title}</h4>
-      <button className={s.btn__remove} data-tooltip-id={`tooltip-remove-board-${board.id}`} onClick={handleClickRemoveBoard}>
+      <button
+        className={s.btn__remove}
+        data-tooltip-id={`tooltip-remove-board-${board.id}`}
+        onClick={handleClickRemoveBoard}
+      >
         <span></span>
         <span></span>
       </button>

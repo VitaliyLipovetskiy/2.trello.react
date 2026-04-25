@@ -14,11 +14,7 @@ const escapeHtml = (s: string): string =>
     .replaceAll("'", '&#39;');
 
 const encodeUrlUnsafe = (s: string): string =>
-  s
-    .replaceAll('"', '%22')
-    .replaceAll("'", '%27')
-    .replaceAll('<', '%3C')
-    .replaceAll('>', '%3E');
+  s.replaceAll('"', '%22').replaceAll("'", '%27').replaceAll('<', '%3C').replaceAll('>', '%3E');
 
 const sanitizeHref = (url: string): string | null => {
   const trimmed = url.trim();
@@ -57,9 +53,7 @@ const transformMarkdown = (value: string | null | undefined): string => {
   text = text.replaceAll(AUTO_URL_RE, (match) => {
     const safeUrl = sanitizeHref(match);
     if (!safeUrl) return match;
-    return pushToken(
-      `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(match)}</a>`
-    );
+    return pushToken(`<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(match)}</a>`);
   });
 
   text = escapeHtml(text);
