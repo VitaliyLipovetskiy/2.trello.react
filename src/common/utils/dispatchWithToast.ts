@@ -5,7 +5,7 @@ export const dispatchWithToast = async <T extends { result: string }>(
   expected: string,
   successMsg: string,
   errorMsg: string,
-  onSuccess?: (response: T) => void,
+  onSuccess?: (response: T) => void
 ): Promise<boolean> => {
   try {
     const response = await action;
@@ -17,6 +17,7 @@ export const dispatchWithToast = async <T extends { result: string }>(
     toast.error(errorMsg);
     return false;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error);
     if (error instanceof Error) {
       toast.error(error.message);

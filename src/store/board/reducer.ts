@@ -1,6 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IBoard, IBoardSlot, ICard, ICardSlot, ICardUpdate, IList, IListSlot } from '../../common/interfaces';
-import { getAllBoards, getBoardById } from './actions';
+import {
+  IBoard,
+  IBoardSlot,
+  ICard,
+  ICardSlot,
+  ICardsUpdate,
+  ICardUpdate,
+  IList,
+  IListSlot,
+} from '../../common/interfaces';
+import { getAllBoards, getBoardById } from './actions'; // eslint-disable-line import/no-cycle
 
 export interface BoardState {
   boards?: IBoard[];
@@ -39,15 +48,20 @@ const convertListToSlot = (list: IList): IListSlot => {
   return { id: list.id, title: list.title, position: list.position, cardSlots };
 };
 
-const restorePlaceholder = (lists: IListSlot[] | undefined, listId: number): IListSlot[] | undefined => {
-  return lists?.map((l) => {
+const isListRestored = (list: IListSlot): boolean =>
+  list.cardSlots.every((s) =>
+    s.card ? s.view && s.position === s.card.position : !s.view && s.position === PLACEHOLDER_POSITION
+  );
+
+const restorePlaceholder = (lists: IListSlot[] | undefined, listId: number): IListSlot[] | undefined =>
+  lists?.map((l) => {
     if (l.id !== listId) return l;
+    if (isListRestored(l)) return l;
     const restoredCardSlots = l.cardSlots
       .map((s) => ({ ...s, view: !!s.card, position: s.card?.position ?? PLACEHOLDER_POSITION }))
       .sort((a, b) => a.position - b.position);
     return { ...l, cardSlots: restoredCardSlots };
   });
-};
 
 const boardSlice = createSlice({
   name: 'board',
@@ -80,31 +94,32 @@ const boardSlice = createSlice({
     },
 
     showPlaceholderSlot: (state, action: PayloadAction<{ targetPosition: number; listSlot: IListSlot }>) => {
-      const sourceList = state.boardSlot?.lists?.find((l) =>
-        l.cardSlots.some((s) => s.card?.id === state.cardDragged?.card?.id)
-      );
+      if (!state.boardSlot?.lists) return;
       const position = action.payload.targetPosition;
-      const listSlot = action.payload.listSlot;
-      if (state.cardDragged?.card && listSlot.id === sourceList?.id) {
-        const currentPos = state.cardDragged.card.position;
-        if (position === currentPos || position === currentPos + 1) {
-          if (listSlot.cardSlots.some((s) => !s.card && s.view)) {
-            if (state.boardSlot) {
-              state.boardSlot = {
-                ...state.boardSlot,
-                lists: restorePlaceholder(state.boardSlot.lists, listSlot.id),
-              };
-            }
-          }
-          return;
-        }
-      }
+      const listSlot = state.boardSlot.lists.find((l) => l.id === action.payload.listSlot.id);
+      if (!listSlot) return;
+
       const currentPlaceholder = listSlot.cardSlots.find((s) => !s.card);
       if (currentPlaceholder?.view && currentPlaceholder.position === position) {
         return;
       }
+
+      const draggedCard = state.cardDragged?.card;
+      if (draggedCard) {
+        const sourceList = state.boardSlot.lists.find((l) => l.cardSlots.some((s) => s.card?.id === draggedCard.id));
+        if (sourceList?.id === listSlot.id) {
+          const currentPos = draggedCard.position;
+          if (position === currentPos || position === currentPos + 1) {
+            if (isListRestored(listSlot)) return;
+            state.boardSlot.lists = restorePlaceholder(state.boardSlot.lists, listSlot.id);
+            return;
+          }
+        }
+      }
+
       const cards = listSlot.cardSlots
         .filter((s) => !!s.card)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .map((s) => s.card!)
         .sort((a, b) => a.position - b.position);
       const newCardSlots: ICardSlot[] = cards.map((card) => {
@@ -115,24 +130,18 @@ const boardSlice = createSlice({
           position: card.position + (shouldShift ? 1 : 0),
         };
       });
-      newCardSlots.push({
-        card: undefined,
-        view: true,
-        position: position,
-      });
+      newCardSlots.push({ card: undefined, view: true, position });
       newCardSlots.sort((a, b) => a.position - b.position);
       const newList = { ...listSlot, cardSlots: newCardSlots };
-      if (!state.boardSlot) return;
-      const lists = state.boardSlot.lists?.map((l) => (l.id === listSlot.id ? newList : l));
-      state.boardSlot = { ...state.boardSlot, lists };
+      state.boardSlot.lists = state.boardSlot.lists.map((l) => (l.id === listSlot.id ? newList : l));
     },
 
     hidePlaceholderSlot: (state, action: PayloadAction<{ listSlot: IListSlot }>) => {
-      if (!state.boardSlot) return;
-      state.boardSlot = {
-        ...state.boardSlot,
-        lists: restorePlaceholder(state.boardSlot.lists, action.payload.listSlot.id),
-      };
+      if (!state.boardSlot?.lists) return;
+      const listId = action.payload.listSlot.id;
+      const listSlot = state.boardSlot.lists.find((l) => l.id === listId);
+      if (!listSlot || isListRestored(listSlot)) return;
+      state.boardSlot.lists = restorePlaceholder(state.boardSlot.lists, listId);
     },
 
     addBoard: (state, action: PayloadAction<IBoard>) => {
@@ -148,6 +157,7 @@ const boardSlice = createSlice({
       if (state.boardSlot?.lists) {
         state.boardSlot?.lists.push(listSlot);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         state.boardSlot = { ...state.boardSlot!, lists: [listSlot] };
       }
     },
@@ -170,7 +180,7 @@ const boardSlice = createSlice({
       if (!state.boardSlot?.lists) return;
       state.boardSlot.lists.forEach((listSlot) => {
         if (listSlot.id === action.payload.listId) {
-          const card = action.payload.card;
+          const { card } = action.payload;
           const cardSlot: ICardSlot = { position: card.position, card, view: true };
           listSlot.cardSlots.push(cardSlot);
         }
@@ -178,18 +188,22 @@ const boardSlice = createSlice({
     },
 
     updateCard: (state, action: PayloadAction<{ cardId: number; listId: number; card: ICardUpdate }>) => {
-      if (!state.boardSlot?.lists) return;
-      state.boardSlot.lists.forEach((listSlot) => {
-        if (listSlot.id !== action.payload.listId) return;
-        listSlot.cardSlots.forEach((cardSlot) => {
-          if (cardSlot.card?.id !== action.payload.cardId) return;
-          cardSlot.card.title = action.payload.card.title.trim();
-          cardSlot.card.description = action.payload.card.description?.trim();
+      const nextTitle = action.payload.card.title?.trim();
+      if (!nextTitle) return;
+      const nextDescription = action.payload.card.description?.trim();
+      if (state.boardSlot?.lists) {
+        state.boardSlot.lists.forEach((listSlot) => {
+          if (listSlot.id !== action.payload.listId) return;
+          listSlot.cardSlots.forEach((cardSlot) => {
+            if (cardSlot.card?.id !== action.payload.cardId) return;
+            cardSlot.card.title = nextTitle;
+            cardSlot.card.description = nextDescription;
+          });
         });
-      });
+      }
       if (state.cardSlot?.card) {
-        state.cardSlot.card.title = action.payload.card.title.trim();
-        state.cardSlot.card.description = action.payload.card.description?.trim();
+        state.cardSlot.card.title = nextTitle;
+        state.cardSlot.card.description = nextDescription;
       }
     },
 
@@ -201,7 +215,7 @@ const boardSlice = createSlice({
     },
 
     clearListDragged: (state) => {
-      const listDragged = state.listDragged;
+      const { listDragged } = state;
       if (listDragged) {
         const list = state.boardSlot?.lists?.find((l) => l.id === listDragged.id);
         if (list) list.view = undefined;
@@ -225,18 +239,69 @@ const boardSlice = createSlice({
         listSlot.cardSlots = listSlot.cardSlots.filter((cardSlot) => cardSlot.card?.id !== action.payload.cardId);
       });
     },
+
+    applyCardUpdates: (state, action: PayloadAction<ICardsUpdate[]>) => {
+      if (!state.boardSlot?.lists) return;
+      const updates = action.payload;
+      if (updates.length === 0) return;
+
+      const { lists } = state.boardSlot;
+      const affectedListIds = new Set<number>();
+
+      updates.forEach((update) => {
+        let sourceListIdx = -1;
+        let cardSlotIdx = -1;
+        for (let i = 0; i < lists.length; i++) {
+          const idx = lists[i].cardSlots.findIndex((cs) => cs.card?.id === update.id);
+          if (idx !== -1) {
+            sourceListIdx = i;
+            cardSlotIdx = idx;
+            break;
+          }
+        }
+        if (sourceListIdx === -1) return;
+
+        const sourceList = lists[sourceListIdx];
+        const cardSlot = sourceList.cardSlots[cardSlotIdx];
+        if (!cardSlot.card) return;
+
+        cardSlot.card.position = update.position;
+        affectedListIds.add(sourceList.id);
+
+        if (update.list_id !== sourceList.id) {
+          const targetList = lists.find((l) => l.id === update.list_id);
+          if (targetList) {
+            sourceList.cardSlots.splice(cardSlotIdx, 1);
+            targetList.cardSlots.push(cardSlot);
+            affectedListIds.add(targetList.id);
+          }
+        }
+      });
+
+      state.boardSlot.lists = lists.map((l) => {
+        if (!affectedListIds.has(l.id)) return l;
+        const restoredCardSlots = l.cardSlots
+          .map((s) =>
+            s.card
+              ? { ...s, view: true, position: s.card.position }
+              : { ...s, view: false, position: PLACEHOLDER_POSITION }
+          )
+          .sort((a, b) => a.position - b.position);
+        return { ...l, cardSlots: restoredCardSlots };
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getAllBoards.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Unknown error';
+        state.error = action.payload ?? action.error.message ?? 'Unknown error';
       })
       .addCase(getAllBoards.fulfilled, (state, { payload }) => {
         state.boards = payload.boards;
         state.boardSlot = undefined;
       })
       .addCase(getBoardById.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Unknown error';
+        state.error = action.payload ?? action.error.message ?? 'Unknown error';
       })
       .addCase(getBoardById.fulfilled, (state, { payload, meta }) => {
         const lists = payload.lists?.map((list) => convertListToSlot(list));
@@ -260,6 +325,7 @@ export const {
   addCard,
   updateCard,
   removeCard,
+  applyCardUpdates,
   setListDragged,
   clearListDragged,
   showListPlaceholder,

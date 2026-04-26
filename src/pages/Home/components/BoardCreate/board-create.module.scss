@@ -33,6 +33,11 @@
   border-radius: 16px;
   box-shadow: $glass-shadow;
   color: $primary-color;
+  box-sizing: border-box;
+
+  @include onMobile {
+    width: calc(100vw - 32px);
+  }
 }
 
 h1 {
@@ -63,7 +68,7 @@ h1 {
     text-align: left;
     font-size: 1em;
     font-weight: bold;
-    background: rgba(255, 255, 255, 0.08);
+    background: $third-background-hover;
     color: $primary-color;
     border: $glass-border;
     border-radius: 8px;

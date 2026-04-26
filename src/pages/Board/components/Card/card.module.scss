@@ -12,7 +12,7 @@
   border-radius: 10px;
   font-size: 16px;
   border: $glass-border;
-  background: rgba(255, 255, 255, 0.1);
+  background: $primary-background-element;
   backdrop-filter: $glass-blur-light;
   justify-content: center;
   transition: all 0.3s ease;
@@ -20,31 +20,33 @@
   &:hover {
     background: rgba(255, 255, 255, 0.16);
     border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), $glass-glow;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.15),
+      $glass-glow;
     transform: translateY(-1px);
   }
-
-  & a {
-    display: flex;
-    flex-direction: column;
-  }
-
-  input {
-    padding: 10px;
-    border-radius: 10px;
-    color: $primary-color;
-    border-color: transparent;
-    background-color: transparent;
-    cursor: pointer;
-  }
 }
 
-.card_readonly input {
-  display: block;
-  border: none;
-  cursor: pointer;
-}
-
-.card_edit {
+.card_link {
   display: flex;
+  flex-direction: column;
+  color: $primary-color;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus,
+  &:visited {
+    color: $primary-color;
+    text-decoration: none;
+  }
+}
+
+.card_title {
+  padding: 10px;
+  word-break: break-word;
+}
+
+.card_placeholder {
+  min-height: 38px;
 }

@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Board, BoardCreate } from './components';
+import React, { JSX, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { Board, BoardCreate } from './components';
 import { ProgressBar } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { boardAction } from '../../store/actions';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './home.module.scss';
 
-const Home = () => {
+const Home = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { boards } = useAppSelector((state) => state.board);
   const [boardModal, setBoardModal] = useState(false);
@@ -27,11 +27,11 @@ const Home = () => {
               <Board board={board} />
             </Link>
           ))}
-          <button className={s.board_add} onClick={() => setBoardModal(true)}>
+          <button className={s.board_add} onClick={(): void => setBoardModal(true)}>
             + Додати дошку
           </button>
         </div>
-        {boardModal && <BoardCreate onClose={() => setBoardModal(false)} />}
+        {boardModal && <BoardCreate onClose={(): void => setBoardModal(false)} />}
       </div>
       <ToastContainer />
     </ProgressBar>

@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Card } from '../Card/Card';
-import { CardCreate } from '../CardCreate/CardCreate';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'react-tooltip';
+import { Card } from '../Card/Card';
+import { CardCreate } from '../CardCreate/CardCreate';
 import useValidation from '../../../../hooks/useValidation';
 import { ConfirmModal, useConfirm } from '../../../../common/components';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { useAppDispatch, useAppSelector, useAppStore } from '../../../../store/hooks';
 import {
+  applyCardUpdates,
   hideCardDragged,
   hidePlaceholderSlot,
   removeList,
@@ -20,46 +21,68 @@ import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
 import colors from '../../../../styles/variables.module.scss';
 import { ICardsUpdate } from '../../../../common/interfaces';
+import { isCardDrag, setActiveDragType } from '../../../../common/utils/dragState';
 
-export const List = ({ id }: { id: number }) => {
+export const List = ({ id }: { id: number }): JSX.Element => {
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const listSlot = useAppSelector((state) => state.board.boardSlot?.lists?.find((list) => list.id === id));
-  const boardSlot = useAppSelector((state) => state.board.boardSlot);
+  const boardId = useAppSelector((state) => state.board.boardSlot?.id);
   const [titleReadOnly, setTitleReadOnly] = useState(true);
   const [title, setTitle] = useState(listSlot?.title || '');
   const inputRef = useRef<HTMLInputElement>(null);
   const { errors, touched, setTouched } = useValidation(title);
-  const cardElementsRef = useRef<HTMLLIElement[]>([]);
+  const containerRef = useRef<HTMLOListElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dragOverRafRef = useRef<number | null>(null);
+  const pendingClientYRef = useRef<number | null>(null);
+  const dragImageCanvasRef = useRef<HTMLElement | null>(null);
   const [draggingCardId, setDraggingCardId] = useState<number | null>(null);
   const escapeCancelledRef = useRef(false);
   const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
+
+  useEffect(
+    () => () => {
+      if (dragOverRafRef.current !== null) {
+        cancelAnimationFrame(dragOverRafRef.current);
+        dragOverRafRef.current = null;
+      }
+      dragImageCanvasRef.current?.remove();
+      dragImageCanvasRef.current = null;
+    },
+    []
+  );
 
   useEffect(() => {
     setTitle(listSlot?.title || '');
   }, [listSlot?.title]);
 
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (!titleReadOnly) {
+      inputRef.current?.focus();
+    }
+  }, [titleReadOnly]);
+
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>): void => {
     e.preventDefault();
     setTitle(e.target.value);
     setTouched(true);
   };
 
-  const handleOnBlurTitle = async (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleOnBlurTitle = async (e: React.FocusEvent<HTMLInputElement>): Promise<void> => {
     e.preventDefault();
     setTitleReadOnly(true);
     if (escapeCancelledRef.current) {
       escapeCancelledRef.current = false;
       return;
     }
-    if (!listSlot || !boardSlot) return;
+    if (!listSlot || boardId === undefined) return;
     if (errors.length !== 0) {
       setTitle(listSlot.title);
       toast.warning('Оновлення списка скасовано');
     } else if (listSlot.title !== title.trim()) {
       await dispatchWithToast(
-        dispatch(
-          boardAction.updateListById({ boardId: boardSlot.id, listId: id, data: { title: title.trim() } })
-        ).unwrap(),
+        dispatch(boardAction.updateListById({ boardId, listId: id, data: { title: title.trim() } })).unwrap(),
         'Updated',
         `Назва списка ${title} оновлена успішно`,
         `Назва списка ${title} не оновлена`,
@@ -68,7 +91,7 @@ export const List = ({ id }: { id: number }) => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       inputRef.current?.blur();
     }
@@ -80,13 +103,13 @@ export const List = ({ id }: { id: number }) => {
     }
   };
 
-  const handleClickRemoveList = async (e: React.MouseEvent) => {
+  const handleClickRemoveList = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
     const confirmed = await confirm(`Видалити список «${listSlot?.title}»?`);
     if (!confirmed) return;
-    if (!boardSlot) return;
+    if (boardId === undefined) return;
     await dispatchWithToast(
-      dispatch(boardAction.removeListById({ boardId: boardSlot.id, listId: id })).unwrap(),
+      dispatch(boardAction.removeListById({ boardId, listId: id })).unwrap(),
       'Deleted',
       `Список ${listSlot?.title} видалений успішно`,
       `Список ${listSlot?.title} не видалений`,
@@ -94,34 +117,36 @@ export const List = ({ id }: { id: number }) => {
     );
   };
 
-  const handleDragStart = (e: React.DragEvent) => {
+  const handleDragStart = (e: React.DragEvent): void => {
     e.stopPropagation();
     const target = e.currentTarget as HTMLLIElement;
-    const cardId = target.dataset['id'];
+    const cardId = target.dataset.id;
     dispatch(setCardDragged({ cardId: cardId ? +cardId : undefined, listId: listSlot?.id }));
 
     if (!e.dataTransfer) {
       return;
     }
-    e.dataTransfer.setData('card_id', cardId || '');
-    e.dataTransfer.setData('source_list_id', listSlot?.id.toString() || '');
+    setActiveDragType('card');
+    e.dataTransfer.setData('text/plain', JSON.stringify({ card_id: cardId, source_list_id: listSlot?.id }));
     e.dataTransfer.effectAllowed = 'move';
 
     const rect = target.getBoundingClientRect();
 
-    const cardSlot = listSlot?.cardSlots?.find((s) => s.card?.id === (cardId ? +cardId : undefined));
+    const cardSlot = listSlot?.cardSlots?.find((slot) => slot.card?.id === (cardId ? +cardId : 0));
     const text = cardSlot?.card?.title || '';
 
     const padding = 40;
     const canvasWidth = rect.width + padding * 2;
     const canvasHeight = rect.height + padding * 2;
 
+    const dpr = window.devicePixelRatio || 1;
     const canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
     const ctx = canvas.getContext('2d');
 
     if (ctx) {
+      ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
       ctx.save();
       ctx.translate(canvasWidth / 2, canvasHeight / 2);
@@ -133,7 +158,6 @@ export const List = ({ id }: { id: number }) => {
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 6;
 
-      ctx.fillStyle = colors.primaryBackgroundElement;
       const x = -rect.width / 2;
       const y = -rect.height / 2;
       const w = rect.width;
@@ -150,9 +174,13 @@ export const List = ({ id }: { id: number }) => {
       ctx.lineTo(x, y + r);
       ctx.quadraticCurveTo(x, y, x + r, y);
       ctx.closePath();
-      ctx.fill();
 
+      // темна база — щоб glassmorphism-прозорість не виглядала білою
+      ctx.fillStyle = '#211e43';
+      ctx.fill();
       ctx.shadowColor = 'transparent';
+      ctx.fillStyle = colors.primaryBackgroundElement;
+      ctx.fill();
 
       if (text) {
         ctx.fillStyle = colors.primaryColor;
@@ -163,60 +191,88 @@ export const List = ({ id }: { id: number }) => {
 
       ctx.restore();
 
-      canvas.style.position = 'fixed';
-      canvas.style.top = '-9999px';
-      document.body.appendChild(canvas);
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL('image/png');
+      img.width = canvasWidth;
+      img.height = canvasHeight;
+      img.style.cssText = 'position:fixed;top:-9999px;left:0;pointer-events:none;';
+      document.body.appendChild(img);
 
-      e.dataTransfer.setDragImage(canvas, canvasWidth / 2, canvasHeight / 2);
+      e.dataTransfer.setDragImage(img, canvasWidth / 2, canvasHeight / 2);
 
-      setTimeout(() => {
-        canvas.remove();
-      }, 100);
+      dragImageCanvasRef.current?.remove();
+      dragImageCanvasRef.current = img;
     }
 
-    const id = cardId ? +cardId : null;
-    setTimeout(() => setDraggingCardId(id), 0);
+    const dragCardId = cardId ? +cardId : null;
+    requestAnimationFrame(() => setDraggingCardId(dragCardId));
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (): void => {
+    setActiveDragType(null);
     setDraggingCardId(null);
     dispatch(setCardDragged({ cardId: undefined, listId: undefined }));
+    dragImageCanvasRef.current?.remove();
+    dragImageCanvasRef.current = null;
+    if (dragOverRafRef.current !== null) {
+      cancelAnimationFrame(dragOverRafRef.current);
+      dragOverRafRef.current = null;
+    }
+    if (listSlot) {
+      dispatch(hidePlaceholderSlot({ listSlot }));
+    }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer?.types?.includes('card_id')) {
-      return;
-    }
+  const handleDragOver = (e: React.DragEvent): void => {
+    if (!isCardDrag()) return;
     e.preventDefault();
-
     if (!listSlot) return;
 
-    const elements = cardElementsRef.current.filter(Boolean);
+    pendingClientYRef.current = e.clientY;
+    if (dragOverRafRef.current !== null) return;
 
-    const targetIndex = elements.findIndex((el) => {
-      const rect = el.getBoundingClientRect();
-      return e.clientY < rect.top + rect.height / 2;
+    dragOverRafRef.current = requestAnimationFrame(() => {
+      dragOverRafRef.current = null;
+      const clientY = pendingClientYRef.current;
+      if (clientY == null || !listSlot || !containerRef.current) return;
+
+      const cardEls = Array.from(containerRef.current.querySelectorAll<HTMLLIElement>('li[data-type="card"]'));
+
+      const targetIndex = cardEls.findIndex((el) => {
+        const rect = el.getBoundingClientRect();
+        return clientY < rect.top + rect.height / 2;
+      });
+
+      const actualCards = listSlot.cardSlots
+        .filter((slot) => !!slot.card)
+        .sort((a, b) => (a.card?.position || 0) - (b.card?.position || 0));
+
+      let targetPosition: number;
+      if (targetIndex === -1) {
+        targetPosition = (actualCards.at(-1)?.card?.position || 0) + 1;
+      } else {
+        targetPosition = actualCards[targetIndex]?.card?.position || 1;
+      }
+
+      dispatch(showPlaceholderSlot({ targetPosition, listSlot }));
     });
-
-    const actualCards = listSlot.cardSlots
-      .filter((s) => !!s.card)
-      .sort((a, b) => (a.card?.position || 0) - (b.card?.position || 0));
-
-    let targetPosition: number;
-    if (targetIndex === -1) {
-      targetPosition = (actualCards.at(-1)?.card?.position || 0) + 1;
-    } else {
-      targetPosition = actualCards[targetIndex]?.card?.position || 1;
-    }
-
-    dispatch(showPlaceholderSlot({ targetPosition, listSlot }));
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    const list = (e.currentTarget as HTMLDivElement).children[0];
-    const relatedTarget = e.relatedTarget as HTMLDivElement;
-    if (list.contains(relatedTarget)) {
+  const handleDragLeave = (e: React.DragEvent): void => {
+    if (!isCardDrag()) return;
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (
+      rect &&
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom
+    ) {
       return;
+    }
+    if (dragOverRafRef.current !== null) {
+      cancelAnimationFrame(dragOverRafRef.current);
+      dragOverRafRef.current = null;
     }
     if (listSlot) {
       dispatch(hidePlaceholderSlot({ listSlot }));
@@ -224,19 +280,19 @@ export const List = ({ id }: { id: number }) => {
     dispatch(hideCardDragged());
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent): Promise<void> => {
     e.preventDefault();
-    if (
-      !e.dataTransfer ||
-      !e.dataTransfer?.types?.includes('card_id') ||
-      !e.dataTransfer.types?.includes('source_list_id')
-    ) {
+    if (!isCardDrag() || !e.dataTransfer) {
       return;
     }
-    const draggedCardId = +e.dataTransfer.getData('card_id');
-    const sourceListId = +e.dataTransfer.getData('source_list_id');
+    const parsed = JSON.parse(e.dataTransfer.getData('text/plain') || '{}') as {
+      card_id: string;
+      source_list_id: string;
+    };
+    const draggedCardId = +parsed.card_id;
+    const sourceListId = +parsed.source_list_id;
 
-    if (!boardSlot || !listSlot) {
+    if (boardId === undefined || !listSlot) {
       return;
     }
 
@@ -265,7 +321,7 @@ export const List = ({ id }: { id: number }) => {
 
     // For cross-list drag: renumber remaining cards in the source list
     if (sourceListId !== listSlot.id) {
-      const sourceList = boardSlot.lists?.find((l) => l.id === sourceListId);
+      const sourceList = store.getState().board.boardSlot?.lists?.find((l) => l.id === sourceListId);
       if (sourceList) {
         const sourceUpdates = sourceList.cardSlots
           .filter((slot) => !!slot.card && slot.card.id !== draggedCardId)
@@ -275,6 +331,7 @@ export const List = ({ id }: { id: number }) => {
           }))
           .filter((slot) => slot.card && slot.position !== slot.card.position)
           .map((slot) => ({
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: slot.card!.id,
             position: slot.position,
             list_id: sourceList.id,
@@ -284,46 +341,47 @@ export const List = ({ id }: { id: number }) => {
     }
 
     const succeeded = await dispatchWithToast(
-      dispatch(boardAction.updateGroupCards({ boardId: boardSlot.id, data })).unwrap(),
+      dispatch(boardAction.updateGroupCards({ boardId, data })).unwrap(),
       'Updated',
       `Карточка ${draggedCardId} переміщена успішно`,
       `Карточка ${draggedCardId} не переміщена`,
-      () => dispatch(boardAction.getBoardById(boardSlot.id))
+      () => dispatch(applyCardUpdates(data))
     );
 
     if (!succeeded) dispatch(hidePlaceholderSlot({ listSlot }));
     dispatch(setCardDragged({ cardId: undefined, listId: undefined }));
   };
 
-  const cardCount = listSlot?.cardSlots?.length || 0;
-  useEffect(() => {
-    cardElementsRef.current = cardElementsRef.current.slice(0, cardCount);
-  }, [cardCount]);
-
   return (
     <div
       id={listSlot?.id.toString()}
+      ref={rootRef}
       className={s.list_wraper}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className={s.list}>
-        <button className={s.btn__remove} data-tooltip-id={`tooltip-remove-list-${id}`} onClick={handleClickRemoveList}>
-          <span></span>
-          <span></span>
+        <button
+          aria-label="Видалити список"
+          className={s.btn__remove}
+          data-tooltip-id={`tooltip-remove-list-${id}`}
+          onClick={handleClickRemoveList}
+        >
+          <span />
+          <span />
         </button>
         <Tooltip id={`tooltip-remove-list-${id}`} className={s.tooltip} content="Видалити список!" place="left" />
         <div className={`${titleReadOnly ? s.list_title_readonly : s.list_title_write} ${s.list_title}`}>
           <input
-            name={'title'}
-            type={'text'}
+            name="title"
+            type="text"
             value={title}
             ref={inputRef}
             required
             readOnly={titleReadOnly}
             autoFocus={!titleReadOnly}
-            onClick={() => setTitleReadOnly(false)}
+            onClick={(): void => setTitleReadOnly(false)}
             onChange={handleChangeTitle}
             onBlur={handleOnBlurTitle}
             onKeyDown={handleKeyDown}
@@ -334,19 +392,17 @@ export const List = ({ id }: { id: number }) => {
             ))}
           </div>
         </div>
-        <ol className={s.container}>
-          {listSlot?.cardSlots?.map((cardSlot, index) =>
+        <ol className={s.container} ref={containerRef}>
+          {listSlot?.cardSlots?.map((cardSlot) =>
             cardSlot.card ? (
               <li
                 className={`${s.card_wrapper}${draggingCardId === cardSlot.card.id ? ' dragging' : ''}`}
                 key={cardSlot.card.id}
-                draggable={true}
+                draggable
                 data-type="card"
                 data-id={cardSlot.card.id}
                 data-position={cardSlot.position}
-                ref={(el) => {
-                  if (el) cardElementsRef.current[index] = el;
-                }}
+                aria-roledescription="Перетягувана картка"
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
@@ -355,7 +411,7 @@ export const List = ({ id }: { id: number }) => {
             ) : (
               <li
                 className={s.card_wrapper}
-                key={-1}
+                key={`placeholder-${listSlot.id}`}
                 hidden={!cardSlot.view}
                 data-type="placeholder"
                 data-position={cardSlot.position}

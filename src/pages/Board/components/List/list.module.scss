@@ -3,7 +3,6 @@
 
 @include btn__action('remove', 3px, 3px, 15px);
 
-
 .list_wrapper {
   list-style: none;
   height: 100%;
@@ -55,12 +54,15 @@
 }
 
 .list_title_write input {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: $third-background-hover;
   border-radius: 6px;
   backdrop-filter: $glass-blur-light;
 }
 
 .card_wrapper {
+  -webkit-user-drag: element;
+  user-select: none;
+
   &.dragging {
     opacity: 0.3;
   }
@@ -85,7 +87,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: $primary-background-hover;
     border-radius: 10px;
   }
 

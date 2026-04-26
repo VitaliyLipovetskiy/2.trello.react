@@ -1,21 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
-import { IBoard } from '../../../../common/interfaces';
 import { addBoard } from '../../../../store/board/reducer';
 import { useAppDispatch } from '../../../../store/hooks';
 import { boardAction } from '../../../../store/actions';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './board-create.module.scss';
 
-export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
+export const BoardCreate = ({ onClose }: { onClose: () => void }): JSX.Element => {
   const [title, setTitle] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const dispatch = useAppDispatch();
   const inputRef = useRef<HTMLInputElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const { errors, touched, setTouched } = useValidation(title || '');
 
   useEffect(() => {
-    const handleEscapePress = (e: KeyboardEvent) => {
+    const handleEscapePress = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         onClose();
       }
@@ -26,49 +25,55 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
     };
   }, [onClose]);
 
-  const handleAcceptCreateBoard = async (e: React.MouseEvent) => {
+  const handleAcceptCreateBoard = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
-    if (errors.length > 0) return;
-    await dispatchWithToast(
+    if (errors.length > 0 || submitting) return;
+    setSubmitting(true);
+    const succeeded = await dispatchWithToast(
       dispatch(boardAction.createBoard(title)).unwrap(),
       'Created',
       `Дошка ${title} створена успішно`,
       `Дошка ${title} не створена`,
-      ({ id }) => dispatch(addBoard({ id, title, lists: [] } as IBoard))
+      ({ id }) => dispatch(addBoard({ id, title, lists: [] }))
     );
-    onClose();
+    if (succeeded) {
+      onClose();
+    } else {
+      setSubmitting(false);
+    }
   };
 
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setTitle(e.target.value);
     setTouched(true);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter' && inputRef.current) {
       inputRef.current.blur();
     }
   };
 
+  const disabled = errors.length > 0 || submitting;
+
   return (
     <div className={s.modals_wrapper}>
       <div className={s.content}>
-        <button className={s.btn__close} onClick={onClose}>
-          <span></span>
-          <span></span>
+        <button type="button" aria-label="Закрити" className={s.btn__close} onClick={onClose}>
+          <span />
+          <span />
         </button>
         <h1>Створити дошку</h1>
-        <label htmlFor={'title'}>Назва дошки*</label>
+        <label htmlFor="title">Назва дошки*</label>
         <div className={`${s.title_create} ${s.title}`}>
           <input
-            id={'title'}
-            type={'text'}
+            id="title"
+            type="text"
             value={title}
             ref={inputRef}
             required
             autoFocus
             onChange={handleChangeTitle}
-            onBlur={() => buttonRef.current?.focus()}
             onKeyDown={handleKeyDown}
           />
           <div className={s.error} hidden={!touched || errors.length === 0}>
@@ -78,9 +83,9 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }) => {
           </div>
         </div>
         <button
-          className={`${s.btn__accept} ${!touched || errors.length > 0 ? s.disabled : ''}`}
-          disabled={errors.length > 0}
-          ref={buttonRef}
+          type="button"
+          className={`${s.btn__accept} ${!touched || disabled ? s.disabled : ''}`}
+          disabled={disabled}
           onClick={handleAcceptCreateBoard}
         >
           Створити

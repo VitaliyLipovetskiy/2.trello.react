@@ -7,6 +7,7 @@
   right: 0;
   width: 100%;
   height: 100%;
+  z-index: 100;
   background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
 
@@ -35,6 +36,13 @@
     &.visible {
       display: block;
     }
+
+    @include onSmallTablet {
+      width: 95%;
+      min-width: unset;
+      max-height: 90vh;
+      top: 50%;
+    }
   }
 
   .modal_header {
@@ -43,13 +51,18 @@
     flex: 0 0;
     min-height: 56px;
     overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid $primary-background-element;
   }
 
   .modal_body {
     display: flex;
     flex-direction: row;
     position: relative;
+    overflow-y: auto;
+
+    @include onSmallTablet {
+      flex-direction: column;
+    }
   }
 }
 
@@ -69,6 +82,13 @@ body.overflow {
   flex-direction: column;
   margin: 10px;
   width: 100%;
+  box-sizing: border-box;
+
+  @include onSmallTablet {
+    margin: 0;
+    padding: 10px;
+    width: 100%;
+  }
 
   & .title {
     display: flex;
@@ -82,6 +102,8 @@ body.overflow {
       font-weight: 1000;
       background: transparent;
       color: $primary-color;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     & label {
@@ -116,6 +138,8 @@ body.overflow {
       min-height: 80px;
       background: rgba(255, 255, 255, 0.05);
       color: $primary-color;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     & .description_viewer {
@@ -140,7 +164,9 @@ body.overflow {
         text-decoration: line-through;
       }
 
-      h1, h2, h3 {
+      h1,
+      h2,
+      h3 {
         margin-top: 12px;
         margin-bottom: 8px;
         font-weight: 600;
@@ -182,6 +208,22 @@ body.overflow {
   right: 0;
   gap: 10px;
 
+  @include onSmallTablet {
+    width: calc(100% - 20px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+
+    & span {
+      width: 100%;
+    }
+
+    & button {
+      flex: 1 1 calc(50% - 5px);
+      text-align: center;
+    }
+  }
+
   & span {
     font-weight: 700;
     text-align: center;
@@ -190,7 +232,7 @@ body.overflow {
 
   & button {
     padding: 5px 20px;
-    background: rgba(255, 255, 255, 0.08);
+    background: $third-background-hover;
     border: $glass-border;
     color: $primary-color;
     border-radius: 8px;

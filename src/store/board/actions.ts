@@ -12,111 +12,167 @@ import {
   IResult,
   IResultCreated,
 } from '../../common/interfaces';
-import { AsyncThunkConfig } from '../store';
+import { AsyncThunkConfig } from '../store'; // eslint-disable-line import/no-cycle
 
-const getAllBoards = createAsyncThunk<{ boards: IBoard[] }, void, AsyncThunkConfig>(
+type AxiosLikeError = {
+  isAxiosError?: boolean;
+  response?: { data?: { message?: string; error?: string } };
+  message?: string;
+};
+
+const extractErrorMessage = (error: unknown): string => {
+  const e = error as AxiosLikeError | undefined;
+  if (e?.isAxiosError) {
+    return e.response?.data?.message ?? e.response?.data?.error ?? e.message ?? 'Unknown error';
+  }
+  if (error instanceof Error) return error.message;
+  return 'Unknown error';
+};
+
+type ThunkConfigWithReject = AsyncThunkConfig & { rejectValue: string };
+
+const getAllBoards = createAsyncThunk<{ boards: IBoard[] }, void, ThunkConfigWithReject>(
   ActionType.GET_ALL_BOARDS,
-  async (_, { extra }) => {
-    const { api } = extra;
-    return api.get('board');
+  async (_, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.get('board');
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const getBoardById = createAsyncThunk<IBoard, number, AsyncThunkConfig>(
+const getBoardById = createAsyncThunk<IBoard, number, ThunkConfigWithReject>(
   ActionType.GET_BOARD_BY_ID,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.get(`board/${payload}`);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.get(`board/${payload}`);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const createBoard = createAsyncThunk<IResultCreated, string, AsyncThunkConfig>(
+const createBoard = createAsyncThunk<IResultCreated, string, ThunkConfigWithReject>(
   ActionType.CREATE_BOARD,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.post('board', { title: payload });
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.post('board', { title: payload });
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const updateBoardById = createAsyncThunk<IResult, { id: number; data: IBoardUpdate }, AsyncThunkConfig>(
+const updateBoardById = createAsyncThunk<IResult, { id: number; data: IBoardUpdate }, ThunkConfigWithReject>(
   ActionType.UPDATE_BOARD,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.put(`board/${payload.id}`, payload.data);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.put(`board/${payload.id}`, payload.data);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const removeBoardById = createAsyncThunk<IResult, number, AsyncThunkConfig>(
+const removeBoardById = createAsyncThunk<IResult, number, ThunkConfigWithReject>(
   ActionType.REMOVE_BOARD,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.delete(`board/${payload}`);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.delete(`board/${payload}`);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const createList = createAsyncThunk<IResultCreated, { boardId: number; data: IListCreate }, AsyncThunkConfig>(
+const createList = createAsyncThunk<IResultCreated, { boardId: number; data: IListCreate }, ThunkConfigWithReject>(
   ActionType.CREATE_LIST,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.post(`board/${payload.boardId}/list`, payload.data);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.post(`board/${payload.boardId}/list`, payload.data);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
 const updateListById = createAsyncThunk<
   IResult,
   { boardId: number; listId: number; data: IListUpdate },
-  AsyncThunkConfig
->(ActionType.UPDATE_LIST, async (payload, { extra }) => {
-  const { api } = extra;
-  return api.put(`board/${payload.boardId}/list/${payload.listId}`, payload.data);
+  ThunkConfigWithReject
+>(ActionType.UPDATE_LIST, async (payload, { extra, rejectWithValue }) => {
+  try {
+    return await extra.api.put(`board/${payload.boardId}/list/${payload.listId}`, payload.data);
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error));
+  }
 });
 
-const removeListById = createAsyncThunk<IResult, { boardId: number; listId: number }, AsyncThunkConfig>(
+const removeListById = createAsyncThunk<IResult, { boardId: number; listId: number }, ThunkConfigWithReject>(
   ActionType.REMOVE_LIST,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.delete(`board/${payload.boardId}/list/${payload.listId}`);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.delete(`board/${payload.boardId}/list/${payload.listId}`);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const createCard = createAsyncThunk<IResultCreated, { id: number; data: ICardCreate }, AsyncThunkConfig>(
+const createCard = createAsyncThunk<IResultCreated, { id: number; data: ICardCreate }, ThunkConfigWithReject>(
   ActionType.CREATE_CARD,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.post(`board/${payload.id}/card`, payload.data);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.post(`board/${payload.id}/card`, payload.data);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
 const updateCardById = createAsyncThunk<
   IResult,
   { boardId: number; cardId: number; data: ICardUpdate },
-  AsyncThunkConfig
->(ActionType.UPDATE_CARD, async (payload, { extra }) => {
-  const { api } = extra;
-  return api.put(`board/${payload.boardId}/card/${payload.cardId}`, payload.data);
+  ThunkConfigWithReject
+>(ActionType.UPDATE_CARD, async (payload, { extra, rejectWithValue }) => {
+  try {
+    return await extra.api.put(`board/${payload.boardId}/card/${payload.cardId}`, payload.data);
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error));
+  }
 });
 
-const updateGroupCards = createAsyncThunk<IResult, { boardId: number; data: ICardsUpdate[] }, AsyncThunkConfig>(
+const updateGroupCards = createAsyncThunk<IResult, { boardId: number; data: ICardsUpdate[] }, ThunkConfigWithReject>(
   ActionType.UPDATE_GROUP_CARDS,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.put(`board/${payload.boardId}/card`, payload.data);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.put(`board/${payload.boardId}/card`, payload.data);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const updateGroupLists = createAsyncThunk<IResult, { boardId: number; data: IListsUpdate[] }, AsyncThunkConfig>(
+const updateGroupLists = createAsyncThunk<IResult, { boardId: number; data: IListsUpdate[] }, ThunkConfigWithReject>(
   ActionType.UPDATE_GROUP_LISTS,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.put(`board/${payload.boardId}/list`, payload.data);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.put(`board/${payload.boardId}/list`, payload.data);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
-const removeCardById = createAsyncThunk<IResult, { boardId: number; cardId: number }, AsyncThunkConfig>(
+const removeCardById = createAsyncThunk<IResult, { boardId: number; cardId: number }, ThunkConfigWithReject>(
   ActionType.REMOVE_CARD,
-  async (payload, { extra }) => {
-    const { api } = extra;
-    return api.delete(`board/${payload.boardId}/card/${payload.cardId}`);
+  async (payload, { extra, rejectWithValue }) => {
+    try {
+      return await extra.api.delete(`board/${payload.boardId}/card/${payload.cardId}`);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
 );
 
