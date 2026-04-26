@@ -1,18 +1,18 @@
+import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { toast } from 'react-toastify';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { clearCard, removeCard, setCard, updateCard } from '../../../../store/board/reducer';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import useValidation from '../../../../hooks/useValidation';
-import { toast } from 'react-toastify';
 import { ICardUpdate } from '../../../../common/interfaces';
 import { boardAction } from '../../../../store/actions';
 import s from './card-modal.module.scss';
-import { useNavigate, useParams } from 'react-router-dom';
 import transformMarkdown from '../../../../hooks/useMarkdown';
 import { ConfirmModal, useConfirm } from '../../../../common/components';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 
-export const CardModal = () => {
+export const CardModal = (): JSX.Element | null => {
   const { cardId } = useParams();
   const navigate = useNavigate();
   const { cardSlot, boardSlot, listSlot } = useAppSelector((state) => state.board);
@@ -32,20 +32,20 @@ export const CardModal = () => {
   confirmOpenRef.current = confirmState.isOpen;
   const closingRef = useRef(false);
 
-  const handleModalClose = useCallback(() => {
+  const handleModalClose = useCallback((): void => {
     closingRef.current = true;
     dispatch(clearCard());
     navigate(`/board/${boardSlot?.id}`);
   }, [dispatch, navigate, boardSlot?.id]);
 
   useEffect(() => {
-    const handleWrapperClick = (event: MouseEvent) => {
+    const handleWrapperClick = (event: MouseEvent): void => {
       const { target } = event;
       if (target instanceof Node && rootRef.current === target) {
         handleModalClose();
       }
     };
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         if (confirmOpenRef.current) return;
         handleModalClose();
@@ -67,12 +67,11 @@ export const CardModal = () => {
       handleModalClose();
       return;
     }
-    for (const list of boardSlot.lists) {
-      const found = list.cardSlots.find((cs) => cs.card?.id === numericId);
-      if (found) {
-        dispatch(setCard({ cardSlot: found, listSlot: list }));
-        return;
-      }
+    const foundList = boardSlot.lists.find((list) => list.cardSlots.some((cs) => cs.card?.id === numericId));
+    if (foundList) {
+      const found = foundList.cardSlots.find((cs) => cs.card?.id === numericId);
+      dispatch(setCard({ cardSlot: found, listSlot: foundList }));
+      return;
     }
     toast.warning(`Картка ${cardId} не знайдена`);
     handleModalClose();
@@ -89,7 +88,7 @@ export const CardModal = () => {
     return null;
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     e.preventDefault();
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -101,14 +100,14 @@ export const CardModal = () => {
     }
   };
 
-  const setDefaultValues = () => {
+  const setDefaultValues = (): void => {
     setFormData({
       title: cardSlot?.card?.title || '',
       description: cardSlot?.card?.description || '',
     });
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     if (e.key !== 'Escape') return;
 
     const { name, value } = e.currentTarget;
@@ -126,7 +125,7 @@ export const CardModal = () => {
     e.currentTarget.blur();
   };
 
-  const handleInputOnBlur = async (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputOnBlur = async (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> => {
     e.preventDefault();
     setEditingDescription(false);
     if (escapeCancelledRef.current) {
@@ -155,11 +154,12 @@ export const CardModal = () => {
       'Updated',
       `Картка ${formData.title} оновлена успішно`,
       `Картка ${cardSlot.card.title} не оновлена`,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       () => dispatch(updateCard({ cardId: cardSlot.card!.id, listId: listSlot!.id, card: data }))
     );
   };
 
-  const handleDeleteCard = async () => {
+  const handleDeleteCard = async (): Promise<void> => {
     const confirmed = await confirm(`Видалити картку «${cardSlot?.card?.title}»?`);
     if (!confirmed) return;
     if (!boardSlot || !cardSlot?.card || !listSlot) return;
@@ -169,13 +169,14 @@ export const CardModal = () => {
       'Картка видалена успішно',
       'Картку не вдалося видалити',
       () => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         dispatch(removeCard({ cardId: cardSlot.card!.id, listId: listSlot!.id }));
         handleModalClose();
       }
     );
   };
 
-  const toggleEditDescription = () => {
+  const toggleEditDescription = (): void => {
     flushSync(() => setEditingDescription(true));
     descriptionRef.current?.focus();
   };
@@ -184,9 +185,9 @@ export const CardModal = () => {
     <div className={s.modals_wrapper} ref={rootRef}>
       <div className={s.modal}>
         <header className={s.modal_header}>
-          <button className={s.btn__close} onClick={handleModalClose}>
-            <span></span>
-            <span></span>
+          <button aria-label="Закрити" className={s.btn__close} onClick={handleModalClose}>
+            <span />
+            <span />
           </button>
         </header>
         <div className={s.modal_body}>
@@ -220,7 +221,7 @@ export const CardModal = () => {
                   ref={descriptionRef}
                   value={formData.description}
                   onChange={handleInputChange}
-                  onFocus={() => setEditingDescription(true)}
+                  onFocus={(): void => setEditingDescription(true)}
                   onBlur={handleInputOnBlur}
                   onKeyDown={handleInputKeyDown}
                 />
@@ -228,13 +229,14 @@ export const CardModal = () => {
                 <div
                   className={s.description_viewer}
                   role="button"
+                  aria-label="Редагувати опис"
                   tabIndex={0}
-                  dangerouslySetInnerHTML={{ __html: innerHTML }}
+                  dangerouslySetInnerHTML={{ __html: innerHTML }} // eslint-disable-line react/no-danger
                   onClick={toggleEditDescription}
-                  onKeyDown={(e) => {
+                  onKeyDown={(e): void => {
                     if (e.key === 'Enter' || e.key === ' ') toggleEditDescription();
                   }}
-                ></div>
+                />
               )}
             </div>
           </div>

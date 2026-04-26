@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
 import { boardAction } from '../../../../store/actions';
@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './list-create.module.scss';
 
-export const ListCreate = () => {
+export const ListCreate = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [listNew, setListNew] = useState(false);
   const [title, setTitle] = useState('');
@@ -18,7 +18,7 @@ export const ListCreate = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         setListNew(false);
       }
@@ -36,18 +36,18 @@ export const ListCreate = () => {
     }
   }, [listNew, setTouched]);
 
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setTitle(e.target.value);
     setTouched(true);
   };
 
-  const setDefaultValues = () => {
+  const setDefaultValues = (): void => {
     setTitle('');
     setTouched(false);
     setListNew(false);
   };
 
-  const handleAcceptNewList = async (e: React.MouseEvent) => {
+  const handleAcceptNewList = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
     const savedTitle = title;
     setDefaultValues();
@@ -65,7 +65,7 @@ export const ListCreate = () => {
     );
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter' && errors.length === 0) {
       buttonRef.current?.focus();
     }
@@ -74,7 +74,7 @@ export const ListCreate = () => {
     }
   };
 
-  const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlurTitle = (e: React.FocusEvent<HTMLInputElement>): void => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
     } else if (e.relatedTarget !== buttonRef.current) {
@@ -87,8 +87,8 @@ export const ListCreate = () => {
       {listNew ? (
         <div className={s.list_new}>
           <input
-            name={'listTitle'}
-            type={'text'}
+            name="listTitle"
+            type="text"
             value={title}
             ref={inputRef}
             required
@@ -120,14 +120,14 @@ export const ListCreate = () => {
             <button
               data-tooltip-id="tooltip-cancel-create-list"
               className={s.list__btn_close}
-              onMouseDown={() => setDefaultValues()}
+              onMouseDown={(): void => setDefaultValues()}
             >
               &times;
             </button>
           </div>
         </div>
       ) : (
-        <button className={s.list__btn_add} onClick={() => setListNew(true)}>
+        <button className={s.list__btn_add} onClick={(): void => setListNew(true)}>
           + Додайте ще один список
         </button>
       )}

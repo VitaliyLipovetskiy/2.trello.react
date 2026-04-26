@@ -2,7 +2,9 @@ const HTTP_URL_RE = /^https?:\/\//i;
 const AUTO_URL_RE = /\bhttps?:\/\/[^\s<>"']+/gi;
 const MD_LINK_RE = /\[([^\]]*)\]\(([^)]+)\)/g;
 const PLACEHOLDER_MARKER = '\x00';
+// eslint-disable-next-line no-control-regex
 const PLACEHOLDER_RE = /\x00(\d+)\x00/g;
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHAR_RE = /[\x00-\x1f\x7f]/;
 
 const escapeHtml = (s: string): string =>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
 import { ICardCreate } from '../../../../common/interfaces';
@@ -9,7 +9,7 @@ import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './card-create.module.scss';
 
-export const CardCreate = ({ listId }: { listId: number }) => {
+export const CardCreate = ({ listId }: { listId: number }): JSX.Element => {
   const dispatch = useAppDispatch();
   const { boardSlot } = useAppSelector((state) => state.board);
   const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
@@ -26,12 +26,18 @@ export const CardCreate = ({ listId }: { listId: number }) => {
     }
   }, [isCardNew, setTouched]);
 
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const setDefaultValues = (): void => {
+    setTitle('');
+    setTouched(false);
+    setIsCardNew(false);
+  };
+
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     setTitle(e.target.value);
     setTouched(true);
   };
 
-  const handleAcceptCreateNewCard = async (e: React.FormEvent<HTMLButtonElement>) => {
+  const handleAcceptCreateNewCard = async (e: React.FormEvent<HTMLButtonElement>): Promise<void> => {
     e.preventDefault();
     if (!boardSlot || !listSlot) return;
     const data: ICardCreate = {
@@ -49,19 +55,13 @@ export const CardCreate = ({ listId }: { listId: number }) => {
     setDefaultValues();
   };
 
-  const setDefaultValues = () => {
-    setTitle('');
-    setTouched(false);
-    setIsCardNew(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Escape') {
       setDefaultValues();
     }
   };
 
-  const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+  const handleBlurTitle = (e: React.FocusEvent<HTMLTextAreaElement>): void => {
     if (e.relatedTarget === null) {
       inputRef.current?.focus();
     } else if (e.relatedTarget !== acceptButtonRef.current) {
@@ -74,7 +74,7 @@ export const CardCreate = ({ listId }: { listId: number }) => {
       {isCardNew ? (
         <div className={s.card_new}>
           <textarea
-            name={'cardTitle'}
+            name="cardTitle"
             value={title}
             ref={inputRef}
             required
@@ -106,14 +106,14 @@ export const CardCreate = ({ listId }: { listId: number }) => {
             <button
               data-tooltip-id={`tooltip-create-card-${listId}`}
               className={s.card__btn_close}
-              onMouseDown={() => setDefaultValues()}
+              onMouseDown={(): void => setDefaultValues()}
             >
               &times;
             </button>
           </div>
         </div>
       ) : (
-        <button className={s.card__btm_add} onClick={() => setIsCardNew(true)}>
+        <button className={s.card__btm_add} onClick={(): void => setIsCardNew(true)}>
           + Додати картку
         </button>
       )}

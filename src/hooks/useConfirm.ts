@@ -5,7 +5,12 @@ interface ConfirmState {
   message: string;
 }
 
-export const useConfirm = () => {
+export const useConfirm = (): {
+  confirm: (message: string) => Promise<boolean>;
+  confirmState: ConfirmState;
+  handleConfirm: () => void;
+  handleCancel: () => void;
+} => {
   const [state, setState] = useState<ConfirmState>({ isOpen: false, message: '' });
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
@@ -17,13 +22,13 @@ export const useConfirm = () => {
     });
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = (): void => {
     resolveRef.current?.(true);
     resolveRef.current = null;
     setState({ isOpen: false, message: '' });
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     resolveRef.current?.(false);
     resolveRef.current = null;
     setState({ isOpen: false, message: '' });

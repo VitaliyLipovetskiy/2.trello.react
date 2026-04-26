@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 const VALIDATION_PATTERN = /^[a-zа-яіїєґ0-9\-._\s]+$/i;
 
@@ -15,7 +15,9 @@ const validate = (message: string): string[] => {
   return [];
 };
 
-const useValidation = (message: string) => {
+const useValidation = (
+  message: string
+): { errors: string[]; touched: boolean; setTouched: React.Dispatch<React.SetStateAction<boolean>> } => {
   const [touched, setTouched] = useState(false);
   const errors = useMemo(() => validate(message), [message]);
 

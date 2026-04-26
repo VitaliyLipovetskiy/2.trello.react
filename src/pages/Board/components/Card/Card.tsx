@@ -1,9 +1,10 @@
+import { Link } from 'react-router-dom';
+import { JSX } from 'react';
 import { useAppDispatch, useAppSelector, useAppStore } from '../../../../store/hooks';
 import { setCard } from '../../../../store/board/reducer';
 import s from './card.module.scss';
-import { Link } from 'react-router-dom';
 
-export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) => {
+export const Card = ({ listId, cardId }: { listId: number; cardId?: number }): JSX.Element => {
   const dispatch = useAppDispatch();
   const store = useAppStore();
   const title = useAppSelector(
@@ -16,7 +17,7 @@ export const Card = ({ listId, cardId }: { listId: number; cardId?: number }) =>
     return <div className={`${s.card} ${s.card_placeholder}`} />;
   }
 
-  const handleClickCard = () => {
+  const handleClickCard = (): void => {
     const listSlot = store.getState().board.boardSlot?.lists?.find((l) => l.id === listId);
     const cardSlot = listSlot?.cardSlots.find((cs) => cs.card?.id === cardId);
     dispatch(setCard({ cardSlot, listSlot }));

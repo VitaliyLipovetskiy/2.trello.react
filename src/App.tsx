@@ -5,12 +5,12 @@ import Board from './pages/Board/Board';
 import { CardModal } from './pages/Board/components';
 import './App.css';
 
-function App() {
+function App(): JSX.Element {
   return (
     <Routes>
       <Route index element={<Home />} />
-      <Route path={'board/:boardId'} element={<Board />}>
-        <Route path={'card/:cardId'} element={<CardModal />} />
+      <Route path="board/:boardId" element={<Board />}>
+        <Route path="card/:cardId" element={<CardModal />} />
       </Route>
     </Routes>
   );

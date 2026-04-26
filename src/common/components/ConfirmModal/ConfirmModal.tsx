@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import s from './confirm-modal.module.scss';
 
@@ -8,7 +8,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
+export const ConfirmModal = ({ message, onConfirm, onCancel }: Props): React.ReactPortal => {
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
   const messageId = useId();
 
@@ -17,14 +17,14 @@ export const ConfirmModal = ({ message, onConfirm, onCancel }: Props) => {
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onCancel();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onCancel]);
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     e.stopPropagation();
     if (e.target === e.currentTarget) onCancel();
   };

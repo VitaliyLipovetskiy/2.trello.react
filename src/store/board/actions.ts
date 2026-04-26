@@ -12,7 +12,7 @@ import {
   IResult,
   IResultCreated,
 } from '../../common/interfaces';
-import { AsyncThunkConfig } from '../store';
+import { AsyncThunkConfig } from '../store'; // eslint-disable-line import/no-cycle
 
 type AxiosLikeError = {
   isAxiosError?: boolean;

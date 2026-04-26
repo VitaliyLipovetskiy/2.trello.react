@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
 import { ListCreate, List } from './components';
 import { IBoardUpdate, IListSlot, IListsUpdate } from '../../common/interfaces';
-import { ToastContainer, toast } from 'react-toastify';
 import { ProgressBar } from '../../common/components';
 import { useAppDispatch, useAppSelector, useAppStore } from '../../store/hooks';
 import { boardAction } from '../../store/actions';
@@ -14,7 +14,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import s from './board.module.scss';
 import colors from '../../styles/variables.module.scss';
 
-const Board = () => {
+const Board = (): JSX.Element => {
   const { boardId } = useParams();
   const dispatch = useAppDispatch();
   const store = useAppStore();
@@ -37,12 +37,13 @@ const Board = () => {
     }
   }, [boardId, dispatch]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       clearTimeout(colorDebounceRef.current);
       if (listDragOverRafRef.current !== null) cancelAnimationFrame(listDragOverRafRef.current);
-    };
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     setTitle(boardSlot?.title || '');
@@ -55,7 +56,7 @@ const Board = () => {
     }
   }, [titleEdit]);
 
-  const handleOnBlurTitle = async () => {
+  const handleOnBlurTitle = async (): Promise<void> => {
     setTitleEdit(false);
     if (escapeCancelledRef.current) {
       escapeCancelledRef.current = false;
@@ -74,8 +75,8 @@ const Board = () => {
     }
   };
 
-  const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
+  const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const { value } = event.target;
     setBackgroundColor(value);
     clearTimeout(colorDebounceRef.current);
     colorDebounceRef.current = setTimeout(async () => {
@@ -92,12 +93,12 @@ const Board = () => {
     }, 400);
   };
 
-  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setTitle(e.target.value);
     setTouched(true);
   };
 
-  const handleKeyDownTitle = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDownTitle = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       inputTitleRef.current?.blur();
     }
@@ -109,7 +110,7 @@ const Board = () => {
     }
   };
 
-  const drawListDragImage = (e: React.DragEvent, listSlot: IListSlot, element: HTMLDivElement) => {
+  const drawListDragImage = (e: React.DragEvent, listSlot: IListSlot, element: HTMLDivElement): void => {
     const rect = element.getBoundingClientRect();
     const pad = 4;
     const canvasWidth = rect.width + pad * 2;
@@ -122,7 +123,14 @@ const Board = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const drawRoundRect = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+    const drawRoundRect = (
+      c: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number
+    ): void => {
       c.beginPath();
       c.moveTo(x + r, y);
       c.lineTo(x + w - r, y);
@@ -183,8 +191,9 @@ const Board = () => {
 
     // Cards (stop before button area)
     const cards = listSlot.cardSlots
-      .filter((s) => s.card && s.view)
-      .map((s) => s.card!)
+      .filter((slot) => slot.card && slot.view)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .map((slot) => slot.card!)
       .sort((a, b) => a.position - b.position);
 
     const cardPad = 5;
@@ -193,8 +202,8 @@ const Board = () => {
     let cardY = ly + 48;
     const cardAreaBottom = btnY - cardGap;
 
-    for (const card of cards) {
-      if (cardY + cardH > cardAreaBottom) break;
+    cards.every((card) => {
+      if (cardY + cardH > cardAreaBottom) return false;
       drawRoundRect(ctx, lx + cardPad, cardY, rect.width - cardPad * 2, cardH, 5);
       ctx.fillStyle = '#211e43';
       ctx.fill();
@@ -205,7 +214,8 @@ const Board = () => {
       ctx.textBaseline = 'middle';
       ctx.fillText(card.title, lx + cardPad + 8, cardY + cardH / 2, rect.width - cardPad * 2 - 16);
       cardY += cardH + cardGap;
-    }
+      return true;
+    });
 
     ctx.restore();
 
@@ -219,7 +229,7 @@ const Board = () => {
     setTimeout(() => img.remove(), 100);
   };
 
-  const handleListDragStart = (e: React.DragEvent, listSlot: IListSlot, index: number) => {
+  const handleListDragStart = (e: React.DragEvent, listSlot: IListSlot, index: number): void => {
     e.stopPropagation();
     setActiveDragType('list');
     e.dataTransfer.setData('text/plain', listSlot.id.toString());
@@ -234,7 +244,7 @@ const Board = () => {
     dispatch(setListDragged({ listId: listSlot.id }));
   };
 
-  const handleListDragEnd = () => {
+  const handleListDragEnd = (): void => {
     setActiveDragType(null);
     if (listDragOverRafRef.current !== null) {
       cancelAnimationFrame(listDragOverRafRef.current);
@@ -243,7 +253,7 @@ const Board = () => {
     dispatch(clearListDragged());
   };
 
-  const handleContainerDragOver = (e: React.DragEvent) => {
+  const handleContainerDragOver = (e: React.DragEvent): void => {
     if (!isListDrag()) return;
     e.preventDefault();
 
@@ -281,7 +291,7 @@ const Board = () => {
     });
   };
 
-  const handleContainerDragLeave = (e: React.DragEvent) => {
+  const handleContainerDragLeave = (e: React.DragEvent): void => {
     if (!isListDrag()) return;
     const container = e.currentTarget as HTMLElement;
     if (e.relatedTarget && container.contains(e.relatedTarget as Node)) return;
@@ -294,7 +304,7 @@ const Board = () => {
     dispatch(hideListPlaceholder());
   };
 
-  const handleContainerDrop = async (e: React.DragEvent) => {
+  const handleContainerDrop = async (e: React.DragEvent): Promise<void> => {
     if (!isListDrag()) return;
     e.preventDefault();
 
@@ -352,15 +362,15 @@ const Board = () => {
             <div className={s.content}>
               <div className={`${s.title} ${titleEdit ? s.title_edit : ''}`}>
                 <input
-                  id={'title'}
-                  name={'title'}
-                  type={'text'}
+                  id="title"
+                  name="title"
+                  type="text"
                   value={title}
                   ref={inputTitleRef}
                   required
                   readOnly={!titleEdit}
                   autoFocus={titleEdit}
-                  onClick={() => setTitleEdit(true)}
+                  onClick={(): void => setTitleEdit(true)}
                   onChange={handleChangeTitle}
                   onBlur={handleOnBlurTitle}
                   onKeyDown={handleKeyDownTitle}
@@ -373,7 +383,7 @@ const Board = () => {
               </div>
             </div>
             <div className={s.home}>
-              <Link to={'/'}>{'<-Додому'}</Link>
+              <Link to="/">{'<-Додому'}</Link>
             </div>
             <div className={s.color_picker_wrapper}>
               <input
@@ -382,11 +392,12 @@ const Board = () => {
                 ref={inputColorRef}
                 value={backgroundColor || '#000000'}
                 onChange={handleColorChange}
-              ></input>
+              />
               <button
+                aria-label="Вибрати колір фону"
                 className={`${s.color_swatch} ${backgroundColor ? '' : s.color_swatch_empty}`}
                 style={backgroundColor ? { backgroundColor } : undefined}
-                onClick={() => inputColorRef.current?.click()}
+                onClick={(): void => inputColorRef.current?.click()}
               />
             </div>
           </div>
@@ -401,12 +412,12 @@ const Board = () => {
             <React.Fragment key={listSlot.id}>
               {listPlaceholderBeforeId === listSlot.id && <div className={s.list_placeholder} />}
               <div
-                ref={(el) => {
+                ref={(el): void => {
                   if (el) listElementsRef.current[index] = el;
                 }}
                 className={listSlot.view === false ? s.list_dragging : ''}
                 draggable
-                onDragStart={(e) => handleListDragStart(e, listSlot, index)}
+                onDragStart={(e): void => handleListDragStart(e, listSlot, index)}
                 onDragEnd={handleListDragEnd}
               >
                 <List id={listSlot.id} />
