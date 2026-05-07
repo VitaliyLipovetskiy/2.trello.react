@@ -3,10 +3,10 @@ import { flushSync } from 'react-dom';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { clearCard, removeCard, setCard, updateCard } from '../../../../store/board/reducer';
+import { clearCard, setCard, updateCard } from '../../../../store/board/reducer';
 import useValidation from '../../../../hooks/useValidation';
 import { ICardUpdate } from '../../../../common/interfaces';
-import { boardAction } from '../../../../store/actions';
+import { useUpdateCardByIdMutation, useRemoveCardByIdMutation } from '../../../../store/board/boardSlice';
 import s from './card-modal.module.scss';
 import transformMarkdown from '../../../../hooks/useMarkdown';
 import { ConfirmModal, useConfirm } from '../../../../common/components';
@@ -17,6 +17,8 @@ export const CardModal = (): JSX.Element | null => {
   const navigate = useNavigate();
   const { cardSlot, boardSlot, listSlot } = useAppSelector((state) => state.board);
   const dispatch = useAppDispatch();
+  const [updateCardById] = useUpdateCardByIdMutation();
+  const [removeCardById] = useRemoveCardByIdMutation();
   const [formData, setFormData] = useState({
     title: cardSlot?.card?.title || '',
     description: cardSlot?.card?.description || '',
@@ -150,7 +152,7 @@ export const CardModal = (): JSX.Element | null => {
     };
     if (!boardSlot || !cardSlot?.card || !listSlot) return;
     await dispatchWithToast(
-      dispatch(boardAction.updateCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id, data })).unwrap(),
+      updateCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id, data }).unwrap(),
       'Updated',
       `Картка ${formData.title} оновлена успішно`,
       `Картка ${cardSlot.card.title} не оновлена`,
@@ -164,15 +166,11 @@ export const CardModal = (): JSX.Element | null => {
     if (!confirmed) return;
     if (!boardSlot || !cardSlot?.card || !listSlot) return;
     await dispatchWithToast(
-      dispatch(boardAction.removeCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id })).unwrap(),
+      removeCardById({ boardId: boardSlot.id, cardId: cardSlot.card.id }).unwrap(),
       'Deleted',
       'Картка видалена успішно',
       'Картку не вдалося видалити',
-      () => {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        dispatch(removeCard({ cardId: cardSlot.card!.id, listId: listSlot!.id }));
-        handleModalClose();
-      }
+      () => handleModalClose()
     );
   };
 

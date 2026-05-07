@@ -1,15 +1,14 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
-import { boardAction } from '../../../../store/actions';
+import { useCreateListMutation } from '../../../../store/board/boardSlice';
 import { IListCreate } from '../../../../common/interfaces';
-import { addList } from '../../../../store/board/reducer';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { useAppSelector } from '../../../../store/hooks';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './list-create.module.scss';
 
 export const ListCreate = (): JSX.Element => {
-  const dispatch = useAppDispatch();
+  const [createList] = useCreateListMutation();
   const [listNew, setListNew] = useState(false);
   const [title, setTitle] = useState('');
   const { boardSlot } = useAppSelector((state) => state.board);
@@ -57,11 +56,10 @@ export const ListCreate = (): JSX.Element => {
     };
     if (!boardSlot) return;
     await dispatchWithToast(
-      dispatch(boardAction.createList({ boardId: boardSlot.id, data: listData })).unwrap(),
+      createList({ boardId: boardSlot.id, data: listData }).unwrap(),
       'Created',
       'Список створено успішно',
-      'Список не вдалося створити',
-      ({ id }) => dispatch(addList({ id, title: savedTitle, position: listData.position, cards: [] }))
+      'Список не вдалося створити'
     );
   };
 

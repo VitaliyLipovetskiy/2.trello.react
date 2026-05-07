@@ -1,28 +1,23 @@
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { Board, BoardCreate } from './components';
 import { ProgressBar } from '../../common/components';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { boardAction } from '../../store/actions';
+import { useGetAllBoardsQuery } from '../../store/board/boardSlice';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './home.module.scss';
 
 const Home = (): JSX.Element => {
-  const dispatch = useAppDispatch();
-  const { boards } = useAppSelector((state) => state.board);
+  const { data } = useGetAllBoardsQuery();
+  const boards = data?.boards ?? [];
   const [boardModal, setBoardModal] = useState(false);
-
-  useEffect(() => {
-    dispatch(boardAction.getAllBoards());
-  }, [dispatch]);
 
   return (
     <ProgressBar>
       <div className={s.home}>
         <h1>Мої дошки</h1>
         <div className={s.container}>
-          {boards?.map((board) => (
+          {boards.map((board) => (
             <Link key={board.id} to={`/board/${board.id}`}>
               <Board board={board} />
             </Link>

@@ -1,18 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-  IBoard,
-  IBoardSlot,
-  ICard,
-  ICardSlot,
-  ICardsUpdate,
-  ICardUpdate,
-  IList,
-  IListSlot,
-} from '../../common/interfaces';
-import { getAllBoards, getBoardById } from './actions'; // eslint-disable-line import/no-cycle
+import { IBoardSlot, ICardSlot, ICardsUpdate, ICardUpdate, IList, IListSlot } from '../../common/interfaces';
+import { boardApi } from './boardSlice'; // eslint-disable-line import/no-cycle
 
 export interface BoardState {
-  boards?: IBoard[];
   boardSlot?: IBoardSlot;
   cardSlot?: ICardSlot;
   listSlot?: IListSlot;
@@ -23,7 +13,6 @@ export interface BoardState {
 }
 
 const initialState: BoardState = {
-  boards: [],
   boardSlot: {
     id: 0,
     title: '',
@@ -144,69 +133,6 @@ const boardSlice = createSlice({
       state.boardSlot.lists = restorePlaceholder(state.boardSlot.lists, listId);
     },
 
-    addBoard: (state, action: PayloadAction<IBoard>) => {
-      state.boards?.push(action.payload);
-    },
-
-    removeBoard: (state, action: PayloadAction<number>) => {
-      state.boards = state.boards?.filter((board) => board.id !== action.payload);
-    },
-
-    addList: (state, action: PayloadAction<IList>) => {
-      const listSlot = convertListToSlot(action.payload);
-      if (state.boardSlot?.lists) {
-        state.boardSlot?.lists.push(listSlot);
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        state.boardSlot = { ...state.boardSlot!, lists: [listSlot] };
-      }
-    },
-
-    updateList: (state, action: PayloadAction<{ listId: number; title: string }>) => {
-      if (!state.boardSlot?.lists) return;
-      state.boardSlot.lists.forEach((listSlot) => {
-        if (listSlot.id === action.payload.listId) {
-          listSlot.title = action.payload.title;
-        }
-      });
-    },
-
-    removeList: (state, action: PayloadAction<number>) => {
-      if (!state.boardSlot?.lists) return;
-      state.boardSlot.lists = state.boardSlot.lists.filter((list) => list.id !== action.payload);
-    },
-
-    addCard: (state, action: PayloadAction<{ listId: number; card: ICard }>) => {
-      if (!state.boardSlot?.lists) return;
-      state.boardSlot.lists.forEach((listSlot) => {
-        if (listSlot.id === action.payload.listId) {
-          const { card } = action.payload;
-          const cardSlot: ICardSlot = { position: card.position, card, view: true };
-          listSlot.cardSlots.push(cardSlot);
-        }
-      });
-    },
-
-    updateCard: (state, action: PayloadAction<{ cardId: number; listId: number; card: ICardUpdate }>) => {
-      const nextTitle = action.payload.card.title?.trim();
-      if (!nextTitle) return;
-      const nextDescription = action.payload.card.description?.trim();
-      if (state.boardSlot?.lists) {
-        state.boardSlot.lists.forEach((listSlot) => {
-          if (listSlot.id !== action.payload.listId) return;
-          listSlot.cardSlots.forEach((cardSlot) => {
-            if (cardSlot.card?.id !== action.payload.cardId) return;
-            cardSlot.card.title = nextTitle;
-            cardSlot.card.description = nextDescription;
-          });
-        });
-      }
-      if (state.cardSlot?.card) {
-        state.cardSlot.card.title = nextTitle;
-        state.cardSlot.card.description = nextDescription;
-      }
-    },
-
     setListDragged: (state, action: PayloadAction<{ listId: number }>) => {
       const list = state.boardSlot?.lists?.find((l) => l.id === action.payload.listId);
       if (!list) return;
@@ -230,14 +156,6 @@ const boardSlice = createSlice({
 
     hideListPlaceholder: (state) => {
       state.listPlaceholderBeforeId = undefined;
-    },
-
-    removeCard: (state, action: PayloadAction<{ cardId: number; listId: number }>) => {
-      if (!state.boardSlot?.lists) return;
-      state.boardSlot.lists.forEach((listSlot) => {
-        if (listSlot.id !== action.payload.listId) return;
-        listSlot.cardSlots = listSlot.cardSlots.filter((cardSlot) => cardSlot.card?.id !== action.payload.cardId);
-      });
     },
 
     applyCardUpdates: (state, action: PayloadAction<ICardsUpdate[]>) => {
@@ -290,22 +208,36 @@ const boardSlice = createSlice({
         return { ...l, cardSlots: restoredCardSlots };
       });
     },
+
+    updateCard: (state, action: PayloadAction<{ cardId: number; listId: number; card: ICardUpdate }>) => {
+      const nextTitle = action.payload.card.title?.trim();
+      if (!nextTitle) return;
+      const nextDescription = action.payload.card.description?.trim();
+      if (state.boardSlot?.lists) {
+        state.boardSlot.lists.forEach((listSlot) => {
+          if (listSlot.id !== action.payload.listId) return;
+          listSlot.cardSlots.forEach((cardSlot) => {
+            if (cardSlot.card?.id !== action.payload.cardId) return;
+            cardSlot.card.title = nextTitle;
+            cardSlot.card.description = nextDescription;
+          });
+        });
+      }
+      if (state.cardSlot?.card) {
+        state.cardSlot.card.title = nextTitle;
+        state.cardSlot.card.description = nextDescription;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllBoards.rejected, (state, action) => {
-        state.error = action.payload ?? action.error.message ?? 'Unknown error';
-      })
-      .addCase(getAllBoards.fulfilled, (state, { payload }) => {
-        state.boards = payload.boards;
-        state.boardSlot = undefined;
-      })
-      .addCase(getBoardById.rejected, (state, action) => {
-        state.error = action.payload ?? action.error.message ?? 'Unknown error';
-      })
-      .addCase(getBoardById.fulfilled, (state, { payload, meta }) => {
+      .addMatcher(boardApi.endpoints.getBoardById.matchFulfilled, (state, { payload, meta }) => {
         const lists = payload.lists?.map((list) => convertListToSlot(list));
-        state.boardSlot = { ...payload, id: meta.arg, lists };
+        state.boardSlot = { ...payload, id: meta.arg.originalArgs, lists };
+        state.error = '';
+      })
+      .addMatcher(boardApi.endpoints.getBoardById.matchRejected, (state, action) => {
+        state.error = action.error.message ?? 'Unknown error';
       });
   },
 });
@@ -317,15 +249,8 @@ export const {
   hideCardDragged,
   showPlaceholderSlot,
   hidePlaceholderSlot,
-  addBoard,
-  removeBoard,
-  addList,
-  updateList,
-  removeList,
-  addCard,
-  updateCard,
-  removeCard,
   applyCardUpdates,
+  updateCard,
   setListDragged,
   clearListDragged,
   showListPlaceholder,

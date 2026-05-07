@@ -2,15 +2,14 @@ import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Tooltip } from 'react-tooltip';
 import useValidation from '../../../../hooks/useValidation';
 import { ICardCreate } from '../../../../common/interfaces';
-import { addCard } from '../../../../store/board/reducer';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
-import { boardAction } from '../../../../store/actions';
+import { useAppSelector } from '../../../../store/hooks';
+import { useCreateCardMutation } from '../../../../store/board/boardSlice';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './card-create.module.scss';
 
 export const CardCreate = ({ listId }: { listId: number }): JSX.Element => {
-  const dispatch = useAppDispatch();
+  const [createCard] = useCreateCardMutation();
   const { boardSlot } = useAppSelector((state) => state.board);
   const listSlot = boardSlot?.lists?.find((list) => list.id === listId);
   const [title, setTitle] = useState('');
@@ -46,11 +45,10 @@ export const CardCreate = ({ listId }: { listId: number }): JSX.Element => {
       position: listSlot.cardSlots.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
     };
     await dispatchWithToast(
-      dispatch(boardAction.createCard({ id: boardSlot.id, data })).unwrap(),
+      createCard({ boardId: boardSlot.id, data }).unwrap(),
       'Created',
       `Карточка ${title} створена успішно`,
-      `Карточка ${title} не створена`,
-      ({ id }) => dispatch(addCard({ listId: listSlot.id, card: { id, title, position: data.position, users: [] } }))
+      `Карточка ${title} не створена`
     );
     setDefaultValues();
   };

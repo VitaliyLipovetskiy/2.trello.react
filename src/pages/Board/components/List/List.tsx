@@ -11,12 +11,14 @@ import {
   applyCardUpdates,
   hideCardDragged,
   hidePlaceholderSlot,
-  removeList,
   setCardDragged,
   showPlaceholderSlot,
-  updateList,
 } from '../../../../store/board/reducer';
-import { boardAction } from '../../../../store/actions';
+import {
+  useRemoveListByIdMutation,
+  useUpdateGroupCardsMutation,
+  useUpdateListByIdMutation,
+} from '../../../../store/board/boardSlice';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './list.module.scss';
 import colors from '../../../../styles/variables.module.scss';
@@ -28,6 +30,9 @@ export const List = ({ id }: { id: number }): JSX.Element => {
   const store = useAppStore();
   const listSlot = useAppSelector((state) => state.board.boardSlot?.lists?.find((list) => list.id === id));
   const boardId = useAppSelector((state) => state.board.boardSlot?.id);
+  const [updateListById] = useUpdateListByIdMutation();
+  const [removeListById] = useRemoveListByIdMutation();
+  const [updateGroupCards] = useUpdateGroupCardsMutation();
   const [titleReadOnly, setTitleReadOnly] = useState(true);
   const [title, setTitle] = useState(listSlot?.title || '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -82,11 +87,10 @@ export const List = ({ id }: { id: number }): JSX.Element => {
       toast.warning('Оновлення списка скасовано');
     } else if (listSlot.title !== title.trim()) {
       await dispatchWithToast(
-        dispatch(boardAction.updateListById({ boardId, listId: id, data: { title: title.trim() } })).unwrap(),
+        updateListById({ boardId, listId: id, data: { title: title.trim() } }).unwrap(),
         'Updated',
         `Назва списка ${title} оновлена успішно`,
-        `Назва списка ${title} не оновлена`,
-        () => dispatch(updateList({ listId: id, title: title.trim() }))
+        `Назва списка ${title} не оновлена`
       );
     }
   };
@@ -109,11 +113,10 @@ export const List = ({ id }: { id: number }): JSX.Element => {
     if (!confirmed) return;
     if (boardId === undefined) return;
     await dispatchWithToast(
-      dispatch(boardAction.removeListById({ boardId, listId: id })).unwrap(),
+      removeListById({ boardId, listId: id }).unwrap(),
       'Deleted',
       `Список ${listSlot?.title} видалений успішно`,
-      `Список ${listSlot?.title} не видалений`,
-      () => dispatch(removeList(id))
+      `Список ${listSlot?.title} не видалений`
     );
   };
 
@@ -175,7 +178,6 @@ export const List = ({ id }: { id: number }): JSX.Element => {
       ctx.quadraticCurveTo(x, y, x + r, y);
       ctx.closePath();
 
-      // темна база — щоб glassmorphism-прозорість не виглядала білою
       ctx.fillStyle = '#211e43';
       ctx.fill();
       ctx.shadowColor = 'transparent';
@@ -319,7 +321,6 @@ export const List = ({ id }: { id: number }): JSX.Element => {
       }
     });
 
-    // For cross-list drag: renumber remaining cards in the source list
     if (sourceListId !== listSlot.id) {
       const sourceList = store.getState().board.boardSlot?.lists?.find((l) => l.id === sourceListId);
       if (sourceList) {
@@ -341,7 +342,7 @@ export const List = ({ id }: { id: number }): JSX.Element => {
     }
 
     const succeeded = await dispatchWithToast(
-      dispatch(boardAction.updateGroupCards({ boardId, data })).unwrap(),
+      updateGroupCards({ boardId, data }).unwrap(),
       'Updated',
       `Карточка ${draggedCardId} переміщена успішно`,
       `Карточка ${draggedCardId} не переміщена`,
