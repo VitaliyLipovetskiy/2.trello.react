@@ -9,6 +9,13 @@
   border: none;
   margin: 5px;
   border-radius: 16px;
+
+  @include onMobile {
+    width: 100%;
+    max-width: 100%;
+    margin: 5px 0;
+    box-sizing: border-box;
+  }
 }
 
 .list_new {
@@ -77,6 +84,11 @@
   flex-direction: row;
   min-width: 280px;
   padding: 10px;
+
+  @include onMobile {
+    min-width: unset;
+    width: 100%;
+  }
   font-size: 16px;
   align-items: center;
   color: $primary-color;

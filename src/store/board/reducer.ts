@@ -231,6 +231,9 @@ const boardSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addMatcher(boardApi.endpoints.getBoardById.matchPending, (state) => {
+        state.boardSlot = initialState.boardSlot;
+      })
       .addMatcher(boardApi.endpoints.getBoardById.matchFulfilled, (state, { payload, meta }) => {
         const lists = payload.lists?.map((list) => convertListToSlot(list));
         state.boardSlot = { ...payload, id: meta.arg.originalArgs, lists };
@@ -238,6 +241,45 @@ const boardSlice = createSlice({
       })
       .addMatcher(boardApi.endpoints.getBoardById.matchRejected, (state, action) => {
         state.error = action.error.message ?? 'Unknown error';
+      })
+      .addMatcher(boardApi.endpoints.createList.matchFulfilled, (state, { payload, meta }) => {
+        if (!state.boardSlot?.lists) return;
+        const { data } = meta.arg.originalArgs;
+        state.boardSlot.lists.push(
+          convertListToSlot({ id: payload.id, title: data.title, position: data.position, cards: [] })
+        );
+      })
+      .addMatcher(boardApi.endpoints.removeListById.matchPending, (state, { meta }) => {
+        if (!state.boardSlot?.lists) return;
+        const { listId } = meta.arg.originalArgs;
+        const idx = state.boardSlot.lists.findIndex((l) => l.id === listId);
+        if (idx !== -1) state.boardSlot.lists.splice(idx, 1);
+      })
+      .addMatcher(boardApi.endpoints.createCard.matchFulfilled, (state, { payload, meta }) => {
+        if (!state.boardSlot?.lists) return;
+        const { data } = meta.arg.originalArgs;
+        const list = state.boardSlot.lists.find((l) => l.id === data.list_id);
+        if (!list) return;
+        list.cardSlots.push({
+          position: data.position,
+          view: true,
+          card: {
+            id: payload.id,
+            title: data.title,
+            position: data.position,
+            users: [],
+            ...(data.description && { description: data.description }),
+            ...(data.custom && { custom: data.custom }),
+          },
+        });
+      })
+      .addMatcher(boardApi.endpoints.removeCardById.matchPending, (state, { meta }) => {
+        if (!state.boardSlot?.lists) return;
+        const { cardId } = meta.arg.originalArgs;
+        state.boardSlot.lists.forEach((list) => {
+          const idx = list.cardSlots.findIndex((s) => s.card?.id === cardId);
+          if (idx !== -1) list.cardSlots.splice(idx, 1);
+        });
       });
   },
 });

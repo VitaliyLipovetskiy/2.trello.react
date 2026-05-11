@@ -6,12 +6,19 @@
 .list_wrapper {
   list-style: none;
   height: 100%;
+  max-width: 100%;
+
+  @include onMobile {
+    height: auto;
+    overflow: hidden;
+  }
 }
 
 .list {
   display: flex;
   flex-direction: column;
   min-width: 280px;
+  max-width: 100%;
   position: relative;
   background-color: $glass-blur;
   color: $primary-color;
@@ -28,6 +35,14 @@
   }
 
   @include tooltip;
+
+  @include onMobile {
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    margin: 5px 0;
+    box-sizing: border-box;
+  }
 }
 
 .list_title {
@@ -44,6 +59,7 @@
     border: none;
     color: $primary-color;
     background: transparent;
+    max-width: 100%;
   }
 }
 

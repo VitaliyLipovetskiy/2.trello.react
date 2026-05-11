@@ -4,6 +4,7 @@
 node_modules
 coverage
 build
+.claude
 .env
 .env.local
 .env.example

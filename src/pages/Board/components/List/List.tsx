@@ -357,7 +357,7 @@ export const List = ({ id }: { id: number }): JSX.Element => {
     <div
       id={listSlot?.id.toString()}
       ref={rootRef}
-      className={s.list_wraper}
+      className={s.list_wrapper}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

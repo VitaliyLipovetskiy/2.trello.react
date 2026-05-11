@@ -1,9 +1,10 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
-import { Link, Outlet, useParams } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import { logout } from '../../store/auth/authSlice';
 import { ListCreate, List } from './components';
 import { IBoardUpdate, IListSlot, IListsUpdate } from '../../common/interfaces';
-import { ProgressBar } from '../../common/components';
+import { ProgressBar, LogoutIcon } from '../../common/components';
 import { useAppDispatch, useAppSelector, useAppStore } from '../../store/hooks';
 import {
   useGetBoardByIdQuery,
@@ -22,7 +23,9 @@ const Board = (): JSX.Element => {
   const { boardId } = useParams();
   const dispatch = useAppDispatch();
   const store = useAppStore();
-  const { boardSlot, listDragged, listPlaceholderBeforeId } = useAppSelector((state) => state.board);
+  const { boardSlot: rawBoardSlot, listDragged, listPlaceholderBeforeId } = useAppSelector((state) => state.board);
+  const parsedBoardId = boardId ? +boardId : 0;
+  const boardSlot = rawBoardSlot?.id === parsedBoardId ? rawBoardSlot : undefined;
   const [title, setTitle] = useState('');
   const [titleEdit, setTitleEdit] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState(boardSlot?.custom?.background || '');
@@ -35,11 +38,16 @@ const Board = (): JSX.Element => {
   const { errors, touched, setTouched } = useValidation(title);
   const escapeCancelledRef = useRef(false);
 
-  const parsedBoardId = boardId ? +boardId : 0;
+  const navigate = useNavigate();
   useGetBoardByIdQuery(parsedBoardId, { skip: !boardId });
 
   const [updateBoardById] = useUpdateBoardByIdMutation();
   const [updateGroupLists] = useUpdateGroupListsMutation();
+
+  const handleLogout = (): void => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   useEffect(
     () => () => {
@@ -384,6 +392,9 @@ const Board = (): JSX.Element => {
             <div className={s.home}>
               <Link to="/">{'<-Додому'}</Link>
             </div>
+            <button className={s.logout} onClick={handleLogout} aria-label="Вийти" title="Вийти">
+              <LogoutIcon />
+            </button>
             <div className={s.color_picker_wrapper}>
               <input
                 type="color"

@@ -7,22 +7,30 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .header {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   height: 60px;
-  justify-self: flex-start;
 }
 
 .home {
-  position: fixed;
+  position: absolute;
   height: 60px;
   width: 150px;
   left: 0;
-  justify-items: center;
-  align-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+  padding-left: 16px;
 
   a {
     color: $primary-color;
@@ -36,18 +44,56 @@
 
   @include onSmallTablet {
     width: 90px;
-    padding-left: 8px;
+  }
+
+  @include onMobile {
+    padding-left: 16px;
+  }
+}
+
+.logout {
+  position: absolute;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: $primary-color;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $primary-background-hover;
+  }
+
+  @include onSmallTablet {
+    width: 32px;
+    height: 32px;
+  }
+
+  @include onMobile {
+    right: 16px;
   }
 }
 
 .color_picker_wrapper {
-  display: inline-block;
-  position: fixed;
-  right: 0;
-  width: 60px;
-  height: 60px;
-  justify-items: center;
-  align-content: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 60px;
+  width: 36px;
+  height: 36px;
+
+  @include onSmallTablet {
+    right: 56px;
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .color_input {
@@ -61,15 +107,18 @@
 
 .color_swatch {
   display: block;
-  width: 50px;
-  height: 50px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: $glass-border;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   backdrop-filter: $glass-blur-light;
-  transition: box-shadow 0.3s ease;
+  transition:
+    background 0.2s,
+    box-shadow 0.3s ease;
 
   &:hover {
+    background: $primary-background-hover;
     box-shadow: $glass-glow;
   }
 }
@@ -94,7 +143,7 @@
   flex-wrap: nowrap;
   overflow-x: scroll;
   align-items: start;
-  width: 100vw;
+  width: 100%;
   height: 100%;
 
   &::-webkit-scrollbar {
@@ -110,6 +159,17 @@
     background-color: transparent;
     border-radius: 10px;
   }
+
+  @include onMobile {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100vw;
+    height: auto;
+    padding: 0 16px 16px;
+    box-sizing: border-box;
+  }
 }
 
 .list_placeholder {
@@ -121,6 +181,10 @@
   flex-shrink: 0;
   background-color: rgba(255, 255, 255, 0.03);
   backdrop-filter: $glass-blur-light;
+
+  @include onMobile {
+    display: none;
+  }
 }
 
 .list_dragging {
@@ -138,16 +202,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100vw - 240px);
+  max-width: calc(100vw - 340px);
 
   @include onSmallTablet {
     font-size: 1.2em;
-    max-width: calc(100vw - 180px);
+    max-width: calc(100vw - 280px);
   }
 
   @include onMobile {
     font-size: 1em;
-    max-width: calc(100vw - 200px);
+    max-width: calc(100vw - 260px);
   }
 }
 

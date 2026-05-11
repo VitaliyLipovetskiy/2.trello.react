@@ -1,0 +1,234 @@
+@use 'src/styles/variables' as *;
+@use 'src/styles/mixins' as *;
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+  background: $primary-background;
+}
+
+.card {
+  background: $primary-background-element;
+  border-radius: 10px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include onSmallTablet {
+    padding: 24px 20px;
+  }
+
+  @include onMobile {
+    padding: 20px 16px;
+    border-radius: 8px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    color: $primary-color;
+    text-align: center;
+
+    @include onMobile {
+      font-size: 20px;
+    }
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  label {
+    font-size: 14px;
+    color: $primary-color;
+  }
+
+  input {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: $primary-background;
+    color: $primary-color;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #888;
+    }
+
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus {
+      -webkit-text-fill-color: $primary-color;
+      box-shadow: 0 0 0 1000px $primary-background inset;
+      transition: background-color 9999s ease-in-out 0s;
+    }
+  }
+
+  .input_wrap {
+    position: relative;
+
+    input {
+      padding-right: 40px;
+    }
+  }
+
+  .eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+
+  .strength {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: -4px;
+  }
+
+  .strength_bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .strength_fill {
+    height: 100%;
+    border-radius: 2px;
+    transition:
+      width 0.3s ease,
+      background 0.3s ease;
+  }
+
+  .strength_label {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .fill_weak {
+    width: 33%;
+    background: #ff5a5a;
+  }
+
+  .fill_medium {
+    width: 66%;
+    background: #ffaa00;
+  }
+
+  .fill_strong {
+    width: 100%;
+    background: #4caf50;
+  }
+
+  .text_weak {
+    color: #ff5a5a;
+  }
+
+  .text_medium {
+    color: #ffaa00;
+  }
+
+  .text_strong {
+    color: #4caf50;
+  }
+
+  .input_error {
+    border-color: #ff5a5a;
+
+    &:focus {
+      border-color: #ff5a5a;
+    }
+  }
+
+  .error_hint {
+    text-align: left;
+    font-size: 12px;
+    color: #ff5a5a;
+    margin-top: -4px;
+  }
+
+  .email_hint {
+    font-size: 12px;
+    margin-top: -4px;
+  }
+
+  .email_checking {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .email_taken {
+    color: #ff5a5a;
+  }
+
+  .email_available {
+    color: #4caf50;
+  }
+
+  .email_invalid {
+    color: #ff5a5a;
+  }
+
+  button[type='submit'] {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background: #5a5aff;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      opacity: 0.85;
+    }
+  }
+
+  p {
+    text-align: center;
+    font-size: 13px;
+    color: $third-color;
+    margin: 0;
+
+    a {
+      padding-top: 16px;
+      color: $primary-color;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
