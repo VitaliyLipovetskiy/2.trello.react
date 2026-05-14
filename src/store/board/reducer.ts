@@ -249,7 +249,7 @@ const boardSlice = createSlice({
           convertListToSlot({ id: payload.id, title: data.title, position: data.position, cards: [] })
         );
       })
-      .addMatcher(boardApi.endpoints.removeListById.matchPending, (state, { meta }) => {
+      .addMatcher(boardApi.endpoints.removeListById.matchFulfilled, (state, { meta }) => {
         if (!state.boardSlot?.lists) return;
         const { listId } = meta.arg.originalArgs;
         const idx = state.boardSlot.lists.findIndex((l) => l.id === listId);
@@ -273,7 +273,7 @@ const boardSlice = createSlice({
           },
         });
       })
-      .addMatcher(boardApi.endpoints.removeCardById.matchPending, (state, { meta }) => {
+      .addMatcher(boardApi.endpoints.removeCardById.matchFulfilled, (state, { meta }) => {
         if (!state.boardSlot?.lists) return;
         const { cardId } = meta.arg.originalArgs;
         state.boardSlot.lists.forEach((list) => {

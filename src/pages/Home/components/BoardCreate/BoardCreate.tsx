@@ -54,7 +54,13 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }): JSX.Element =
   const disabled = errors.length > 0 || submitting;
 
   return (
-    <div className={s.modals_wrapper}>
+    <div
+      className={s.modals_wrapper}
+      role="presentation"
+      onClick={(e): void => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={s.content}>
         <button type="button" aria-label="Закрити" className={s.btn__close} onClick={onClose}>
           <span />

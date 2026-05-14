@@ -9,7 +9,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import s from './auth.module.scss';
 
 type PasswordStrength = 'weak' | 'medium' | 'strong';
-type EmailStatus = 'idle' | 'invalid';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -39,16 +38,6 @@ const strengthTextClass: Record<PasswordStrength, string> = {
   strong: s.text_strong,
 };
 
-const emailStatusClass: Record<EmailStatus, string> = {
-  idle: '',
-  invalid: s.email_invalid,
-};
-
-const emailHintText: Record<EmailStatus, string> = {
-  idle: '',
-  invalid: 'Невірний формат email',
-};
-
 const SignUp = (): JSX.Element => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -61,30 +50,22 @@ const SignUp = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<EmailStatus>('idle');
-
+  const [emailInvalid, setEmailInvalid] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const strength = getPasswordStrength(password);
   const passwordMismatch = confirm.length > 0 && password !== confirm;
   const disabled =
-    submitting ||
-    !email ||
-    !password ||
-    !confirm ||
-    passwordMismatch ||
-    strength.level === 'weak' ||
-    emailStatus === 'invalid';
+    submitting || !email || !password || !confirm || passwordMismatch || strength.level === 'weak' || emailInvalid;
 
   useEffect(() => {
-    clearTimeout(debounceRef.current);
-
-    if (email && EMAIL_REGEX.test(email)) {
-      setEmailStatus('idle');
+    if (email) {
+      debounceRef.current = setTimeout(() => {
+        setEmailInvalid(!EMAIL_REGEX.test(email));
+      }, 500);
     } else {
-      setEmailStatus(email ? 'invalid' : 'idle');
+      setEmailInvalid(false);
     }
-
     return () => clearTimeout(debounceRef.current);
   }, [email]);
 
@@ -117,12 +98,10 @@ const SignUp = (): JSX.Element => {
             required
             autoFocus
             autoComplete="email"
-            className={emailStatus === 'invalid' ? s.input_error : ''}
+            className={emailInvalid ? s.input_error : ''}
             onChange={(e): void => setEmail(e.target.value)}
           />
-          {emailStatus !== 'idle' && (
-            <span className={`${s.email_hint} ${emailStatusClass[emailStatus]}`}>{emailHintText[emailStatus]}</span>
-          )}
+          {emailInvalid && <span className={`${s.email_hint} ${s.email_invalid}`}>Невірний формат email</span>}
           <label htmlFor="password">Пароль</label>
           <div className={s.input_wrap}>
             <input

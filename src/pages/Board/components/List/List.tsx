@@ -287,12 +287,17 @@ export const List = ({ id }: { id: number }): JSX.Element => {
     if (!isCardDrag() || !e.dataTransfer) {
       return;
     }
-    const parsed = JSON.parse(e.dataTransfer.getData('text/plain') || '{}') as {
-      card_id: string;
-      source_list_id: string;
-    };
-    const draggedCardId = +parsed.card_id;
-    const sourceListId = +parsed.source_list_id;
+    let parsed: { card_id?: string; source_list_id?: string } = {};
+    try {
+      parsed = JSON.parse(e.dataTransfer.getData('text/plain') || '{}') as {
+        card_id: string;
+        source_list_id: string;
+      };
+    } catch {
+      return;
+    }
+    const draggedCardId = +(parsed.card_id ?? '');
+    const sourceListId = +(parsed.source_list_id ?? '');
 
     if (boardId === undefined || !listSlot) {
       return;

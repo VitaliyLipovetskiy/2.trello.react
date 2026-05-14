@@ -6,20 +6,29 @@ import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { clearCard, setCard, updateCard } from '../../../../store/board/reducer';
 import useValidation from '../../../../hooks/useValidation';
 import { ICardUpdate } from '../../../../common/interfaces';
-import { useUpdateCardByIdMutation, useRemoveCardByIdMutation } from '../../../../store/board/boardSlice';
+import {
+  useUpdateCardByIdMutation,
+  useRemoveCardByIdMutation,
+  useUpdateCardUsersMutation,
+} from '../../../../store/board/boardSlice';
 import s from './card-modal.module.scss';
 import transformMarkdown from '../../../../hooks/useMarkdown';
 import { ConfirmModal, useConfirm } from '../../../../common/components';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
-import { CardMovePanel } from './CardMovePanel';
+import { CardMovePanel } from './move/CardMovePanel';
+import { CardMenu } from './move/CardMenu';
+import { CardActionsBar } from './actions/CardActionsBar';
+import { CardMembers } from './members/CardMembers';
 
 export const CardModal = (): JSX.Element | null => {
   const { cardId } = useParams();
   const navigate = useNavigate();
   const { cardSlot, boardSlot, listSlot } = useAppSelector((state) => state.board);
+  const userId = useAppSelector((state) => state.auth.userId);
   const dispatch = useAppDispatch();
   const [updateCardById] = useUpdateCardByIdMutation();
   const [removeCardById] = useRemoveCardByIdMutation();
+  const [updateCardUsers] = useUpdateCardUsersMutation();
   const [formData, setFormData] = useState({
     title: cardSlot?.card?.title || '',
     description: cardSlot?.card?.description || '',
@@ -33,8 +42,6 @@ export const CardModal = (): JSX.Element | null => {
   const [panelMode, setPanelMode] = useState<'move' | 'copy' | null>(null);
   const [panelSource, setPanelSource] = useState<'menu' | 'list'>('menu');
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const innerHTML = useMemo(() => transformMarkdown(formData.description), [formData.description]);
   const escapeCancelledRef = useRef(false);
   const confirmOpenRef = useRef(false);
@@ -107,11 +114,10 @@ export const CardModal = (): JSX.Element | null => {
   useEffect(() => {
     if (!cardSlot?.card?.id || !boardSlot?.lists) return;
     const foundList = boardSlot.lists.find((list) => list.cardSlots.some((cs) => cs.card?.id === cardSlot.card?.id));
-    if (foundList && foundList.id !== listSlot?.id) {
-      const found = foundList.cardSlots.find((cs) => cs.card?.id === cardSlot.card?.id);
-      dispatch(setCard({ cardSlot: found, listSlot: foundList }));
-    }
-  }, [boardSlot?.lists]); // навмисно — реагуємо лише на оновлення борду після переміщення
+    if (!foundList) return;
+    const found = foundList.cardSlots.find((cs) => cs.card?.id === cardSlot.card?.id);
+    dispatch(setCard({ cardSlot: found, listSlot: foundList }));
+  }, [boardSlot?.lists]); // навмисно — реагуємо лише на оновлення борду після рефетчу
 
   useEffect(() => {
     setFormData({
@@ -119,24 +125,6 @@ export const CardModal = (): JSX.Element | null => {
       description: cardSlot?.card?.description || '',
     });
   }, [cardSlot]);
-
-  useEffect(() => {
-    if (!menuOpen) return () => {};
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(event.target as Node)
-      ) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [menuOpen]);
 
   if (!cardSlot) {
     return null;
@@ -191,15 +179,14 @@ export const CardModal = (): JSX.Element | null => {
       toast.warning('Оновлення карточки скасовано');
       return;
     }
-    if (
-      formData.title.trim() === cardSlot?.card?.title?.trim() &&
-      formData.description.trim() === cardSlot?.card?.description?.trim()
-    ) {
+    const nextDescription = formData.description.trim() || undefined;
+    const prevDescription = cardSlot?.card?.description?.trim() || undefined;
+    if (formData.title.trim() === cardSlot?.card?.title?.trim() && nextDescription === prevDescription) {
       return;
     }
     const data: ICardUpdate = {
       title: formData.title.trim(),
-      description: formData.description?.trim(),
+      description: nextDescription,
       list_id: listSlot?.id,
     };
     if (!boardSlot || !cardSlot?.card || !listSlot) return;
@@ -231,6 +218,26 @@ export const CardModal = (): JSX.Element | null => {
     descriptionRef.current?.focus();
   };
 
+  const openPanel = (mode: 'move' | 'copy'): void => {
+    setPanelSource('menu');
+    setPanelMode(mode);
+  };
+
+  const handleJoinLeave = async (): Promise<void> => {
+    if (!boardSlot || !cardSlot?.card || !userId) return;
+    const isJoined = cardSlot.card.users.includes(userId);
+    await dispatchWithToast(
+      updateCardUsers({
+        boardId: boardSlot.id,
+        cardId: cardSlot.card.id,
+        data: isJoined ? { add: [], remove: [userId] } : { add: [userId], remove: [] },
+      }).unwrap(),
+      'Updated',
+      isJoined ? 'Ви покинули картку' : 'Ви приєднались до картки',
+      isJoined ? 'Не вдалося покинути картку' : 'Не вдалося приєднатись до картки'
+    );
+  };
+
   return (
     <div className={s.modals_wrapper} ref={rootRef}>
       <div className={s.modal} ref={modalRef}>
@@ -258,111 +265,15 @@ export const CardModal = (): JSX.Element | null => {
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </button>
-          <div className={s.header_left}>
-            <button
-              ref={menuButtonRef}
-              className={s.btn__menu}
-              aria-label="Дії"
-              onClick={(): void => setMenuOpen((v) => !v)}
-            >
-              •••
-            </button>
-            {menuOpen && (
-              <div className={s.menu_dropdown} ref={menuRef}>
-                <button
-                  onClick={(): void => {
-                    setMenuOpen(false);
-                    setPanelSource('menu');
-                    setPanelMode('copy');
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="9" y="9" width="13" height="13" rx="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  Копіювати
-                </button>
-                <button
-                  onClick={(): void => {
-                    setMenuOpen(false);
-                    setPanelSource('menu');
-                    setPanelMode('move');
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="5 9 2 12 5 15" />
-                    <polyline points="9 5 12 2 15 5" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
-                    <line x1="12" y1="2" x2="12" y2="22" />
-                  </svg>
-                  Перемістити
-                </button>
-                <button disabled>
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="21 8 21 21 3 21 3 8" />
-                    <rect x="1" y="3" width="22" height="5" />
-                    <line x1="10" y1="12" x2="14" y2="12" />
-                  </svg>
-                  Заархівувати
-                </button>
-                <button
-                  onClick={async (): Promise<void> => {
-                    setMenuOpen(false);
-                    await handleDeleteCard();
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14H6L5 6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                    <path d="M9 6V4h6v2" />
-                  </svg>
-                  Видалити
-                </button>
-              </div>
-            )}
-          </div>
+          <CardMenu
+            isOpen={menuOpen}
+            isJoined={cardSlot.card?.users.includes(userId ?? -1) ?? false}
+            onOpenChange={setMenuOpen}
+            onJoinLeave={handleJoinLeave}
+            onCopy={(): void => openPanel('copy')}
+            onMove={(): void => openPanel('move')}
+            onDelete={handleDeleteCard}
+          />
           <button aria-label="Закрити" className={s.btn__close} onClick={handleModalClose}>
             <span />
             <span />
@@ -387,6 +298,8 @@ export const CardModal = (): JSX.Element | null => {
                 ))}
               </div>
             </div>
+            <CardActionsBar />
+            <CardMembers />
             <div className={s.description}>
               {editingDescription || formData.description.length === 0 ? (
                 <textarea

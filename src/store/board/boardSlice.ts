@@ -5,11 +5,13 @@ import {
   ICardCreate,
   ICardsUpdate,
   ICardUpdate,
+  ICardUsersUpdate,
   IListCreate,
   IListUpdate,
   IListsUpdate,
   IResult,
   IResultCreated,
+  IUser,
 } from '../../common/interfaces';
 import { baseQueryWithReauth } from '../auth/baseQueryWithReauth';
 
@@ -146,6 +148,23 @@ export const boardApi = createApi({
     removeCardById: builder.mutation<IResult, { boardId: number; cardId: number }>({
       query: ({ boardId, cardId }) => ({ url: `board/${boardId}/card/${cardId}`, method: 'DELETE' }),
     }),
+
+    findUsersByName: builder.query<IUser[], string>({
+      query: (param) => ({ url: `user?emailOrUsername=${encodeURIComponent(param)}` }),
+    }),
+
+    getUserById: builder.query<IUser, { boardId: number; userId: number }>({
+      query: ({ boardId, userId }) => ({ url: `board/${boardId}/user/${userId}` }),
+    }),
+
+    updateCardUsers: builder.mutation<IResult, { boardId: number; cardId: number; data: ICardUsersUpdate }>({
+      query: ({ boardId, cardId, data }) => ({
+        url: `board/${boardId}/card/${cardId}/users`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { boardId }) => [{ type: 'Board', id: boardId }],
+    }),
   }),
 });
 
@@ -163,4 +182,7 @@ export const {
   useUpdateGroupCardsMutation,
   useUpdateGroupListsMutation,
   useRemoveCardByIdMutation,
+  useFindUsersByNameQuery,
+  useGetUserByIdQuery,
+  useUpdateCardUsersMutation,
 } = boardApi;

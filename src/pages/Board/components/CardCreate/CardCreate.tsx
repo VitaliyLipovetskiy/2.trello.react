@@ -42,7 +42,11 @@ export const CardCreate = ({ listId }: { listId: number }): JSX.Element => {
     const data: ICardCreate = {
       title,
       list_id: listSlot.id,
-      position: listSlot.cardSlots.map((c) => c.position).reduce((a, b) => Math.max(a, b), 0) + 1,
+      position:
+        listSlot.cardSlots
+          .filter((c) => !!c.card)
+          .map((c) => c.card?.position ?? 0)
+          .reduce((a, b) => Math.max(a, b), 0) + 1,
     };
     await dispatchWithToast(
       createCard({ boardId: boardSlot.id, data }).unwrap(),

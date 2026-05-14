@@ -1,13 +1,13 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { ICard, ICardsUpdate, IList } from '../../../../common/interfaces';
+import { ICard, ICardsUpdate, IList } from '../../../../../common/interfaces';
 import {
   useGetAllBoardsQuery,
   useGetBoardByIdQuery,
   useCreateCardMutation,
   useUpdateGroupCardsMutation,
   useRemoveCardByIdMutation,
-} from '../../../../store/board/boardSlice';
+} from '../../../../../store/board/boardSlice';
 import s from './card-move-panel.module.scss';
 
 interface CardMoveProps {
@@ -105,12 +105,20 @@ export const CardMovePanel = ({
   };
 
   const quickMoveToList = async (destList: IList): Promise<void> => {
-    const sortedCards = [...destList.cards].sort((a, b) => a.position - b.position);
-    const newPosition = sortedCards.length + 1;
+    const sortedDest = [...destList.cards].sort((a, b) => a.position - b.position);
+    const newPosition = sortedDest.length + 1;
     const updates: ICardsUpdate[] = [
-      ...sortedCards.map((c, i) => ({ id: c.id, list_id: destList.id, position: i + 1 })),
+      ...sortedDest.map((c, i) => ({ id: c.id, list_id: destList.id, position: i + 1 })),
       { id: card.id, list_id: destList.id, position: newPosition },
     ];
+    const sourceList = currentBoardLists.find((l) => l.id === currentListId);
+    if (sourceList) {
+      const sourceUpdates = [...sourceList.cards]
+        .filter((c) => c.id !== card.id)
+        .sort((a, b) => a.position - b.position)
+        .map((c, i) => ({ id: c.id, list_id: sourceList.id, position: i + 1 }));
+      updates.push(...sourceUpdates);
+    }
     await updateGroupCards({ boardId: originBoardId, data: updates }).unwrap();
   };
 
@@ -137,7 +145,14 @@ export const CardMovePanel = ({
         boardId: selectedBoardId,
         data: { title: card.title, list_id: selectedListId, position: selectedPosition, description: card.description },
       }).unwrap();
-      await removeCardById({ boardId: originBoardId, cardId: card.id }).unwrap();
+      // removeCardById викликається після успішного createCard.
+      // Якщо видалення впаде — ловимо окремо, щоб не маскувати помилку за загальним catch у handleSubmit
+      try {
+        await removeCardById({ boardId: originBoardId, cardId: card.id }).unwrap();
+      } catch {
+        toast.error('Картку створено на новій дошці, але не вдалося видалити оригінал — видаліть вручну');
+        return;
+      }
     }
     toast.success('Картку переміщено');
   };
@@ -215,7 +230,7 @@ export const CardMovePanel = ({
             </label>
           )}
           <span className={s.label_dest}>{mode === 'copy' ? 'Скопіювати в...' : 'Вибрати місце призначення'}</span>
-          <label className={[s.field, s.field].join(' ')}>
+          <label className={s.field}>
             <span className={s.label_bold}>Дошка</span>
             <select value={selectedBoardId} onChange={handleBoardChange}>
               {allBoards?.boards.map((b) => (

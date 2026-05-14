@@ -6,11 +6,13 @@ import { CardModal } from './pages/Board/components';
 import SignUp from './pages/Auth/SignUp';
 import SignIn from './pages/Auth/SignIn';
 import { useAppSelector } from './store/hooks';
+import { isTokenValid } from './common/utils/isTokenValid';
 import './App.css';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }): JSX.Element => {
   const token = useAppSelector((state) => state.auth.token);
-  return token ? children : <Navigate to="/login" replace />;
+  const refreshToken = useAppSelector((state) => state.auth.refreshToken);
+  return isTokenValid(token) || isTokenValid(refreshToken) ? children : <Navigate to="/login" replace />;
 };
 
 function App(): JSX.Element {

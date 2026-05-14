@@ -48,19 +48,18 @@ export const ListCreate = (): JSX.Element => {
 
   const handleAcceptNewList = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
-    const savedTitle = title;
-    setDefaultValues();
-    const listData: IListCreate = {
-      title: savedTitle,
-      position: Math.max(0, ...(boardSlot?.lists?.map((l) => l.position) || [])) + 1,
-    };
     if (!boardSlot) return;
-    await dispatchWithToast(
+    const listData: IListCreate = {
+      title,
+      position: Math.max(0, ...(boardSlot.lists?.map((l) => l.position) || [])) + 1,
+    };
+    const succeeded = await dispatchWithToast(
       createList({ boardId: boardSlot.id, data: listData }).unwrap(),
       'Created',
       'Список створено успішно',
       'Список не вдалося створити'
     );
+    if (succeeded) setDefaultValues();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {

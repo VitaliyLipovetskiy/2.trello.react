@@ -38,3 +38,8 @@ export interface ICardsUpdate {
   position: number;
   list_id: number;
 }
+
+export interface ICardUsersUpdate {
+  add: number[];
+  remove: number[];
+}

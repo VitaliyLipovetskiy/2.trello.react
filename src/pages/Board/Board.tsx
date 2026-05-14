@@ -93,7 +93,8 @@ const Board = (): JSX.Element => {
     clearTimeout(colorDebounceRef.current);
     colorDebounceRef.current = setTimeout(async () => {
       if (value !== boardSlot?.custom?.background) {
-        const boardUpdate: IBoardUpdate = { title: boardSlot?.title || '', custom: { background: value } };
+        const currentTitle = store.getState().board.boardSlot?.title || '';
+        const boardUpdate: IBoardUpdate = { title: currentTitle, custom: { background: value } };
         const success = await dispatchWithToast(
           updateBoardById({ id: +(boardId || 0), data: boardUpdate }).unwrap(),
           'Updated',
@@ -321,7 +322,7 @@ const Board = (): JSX.Element => {
 
     dispatch(clearListDragged());
 
-    if (!draggedId || !boardSlot || targetBeforeId === undefined) return;
+    if (!draggedId || Number.isNaN(draggedId) || !boardSlot || targetBeforeId === undefined) return;
 
     const sortedLists = [...(boardSlot.lists || [])].sort((a, b) => a.position - b.position);
     const listsWithoutDragged = sortedLists.filter((l) => l.id !== draggedId);
