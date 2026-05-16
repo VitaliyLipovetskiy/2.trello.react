@@ -19,9 +19,7 @@ export const dispatchWithToast = async <T extends { result: string }>(
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error);
-    if (error instanceof Error) {
-      toast.error(error.message);
-    }
+    toast.error(errorMsg);
     return false;
   }
 };

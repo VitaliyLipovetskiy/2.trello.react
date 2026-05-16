@@ -1,31 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { rootReducer } from './root-reducer'; // eslint-disable-line import/no-cycle
-import api from '../api/request';
-// import {boardApi} from "./board/boardSlice";
-
-const extraArgument = {
-  api,
-};
+import { rootReducer } from './root-reducer';
+import { boardApi } from './board/boardSlice';
+import { authApi } from './auth/authApi';
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      thunk: { extraArgument },
-    }),
-  // .concat(boardApi.middleware)
-  // .concat(loggerMiddleware)
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(boardApi.middleware, authApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
-// export type RootState = ReturnType<typeof rootReducer>
-
 export type AppDispatch = typeof store.dispatch;
 
-type AsyncThunkConfig = {
-  state: RootState;
-  dispatch: AppDispatch;
-  extra: typeof extraArgument;
-};
-
-export { extraArgument, store, type AsyncThunkConfig };
+export { store };

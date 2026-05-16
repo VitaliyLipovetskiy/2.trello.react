@@ -1,15 +1,13 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
 import useValidation from '../../../../hooks/useValidation';
-import { addBoard } from '../../../../store/board/reducer';
-import { useAppDispatch } from '../../../../store/hooks';
-import { boardAction } from '../../../../store/actions';
+import { useCreateBoardMutation } from '../../../../store/board/boardSlice';
 import { dispatchWithToast } from '../../../../common/utils/dispatchWithToast';
 import s from './board-create.module.scss';
 
 export const BoardCreate = ({ onClose }: { onClose: () => void }): JSX.Element => {
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const dispatch = useAppDispatch();
+  const [createBoard] = useCreateBoardMutation();
   const inputRef = useRef<HTMLInputElement>(null);
   const { errors, touched, setTouched } = useValidation(title || '');
 
@@ -30,11 +28,10 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }): JSX.Element =
     if (errors.length > 0 || submitting) return;
     setSubmitting(true);
     const succeeded = await dispatchWithToast(
-      dispatch(boardAction.createBoard(title)).unwrap(),
+      createBoard(title).unwrap(),
       'Created',
       `Дошка ${title} створена успішно`,
-      `Дошка ${title} не створена`,
-      ({ id }) => dispatch(addBoard({ id, title, lists: [] }))
+      `Дошка ${title} не створена`
     );
     if (succeeded) {
       onClose();
@@ -57,7 +54,13 @@ export const BoardCreate = ({ onClose }: { onClose: () => void }): JSX.Element =
   const disabled = errors.length > 0 || submitting;
 
   return (
-    <div className={s.modals_wrapper}>
+    <div
+      className={s.modals_wrapper}
+      role="presentation"
+      onClick={(e): void => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={s.content}>
         <button type="button" aria-label="Закрити" className={s.btn__close} onClick={onClose}>
           <span />

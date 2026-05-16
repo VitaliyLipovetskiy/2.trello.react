@@ -1,11 +1,16 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
-import { Link, Outlet, useParams } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import { logout } from '../../store/auth/authSlice';
 import { ListCreate, List } from './components';
 import { IBoardUpdate, IListSlot, IListsUpdate } from '../../common/interfaces';
-import { ProgressBar } from '../../common/components';
+import { ProgressBar, LogoutIcon } from '../../common/components';
 import { useAppDispatch, useAppSelector, useAppStore } from '../../store/hooks';
-import { boardAction } from '../../store/actions';
+import {
+  useGetBoardByIdQuery,
+  useUpdateBoardByIdMutation,
+  useUpdateGroupListsMutation,
+} from '../../store/board/boardSlice';
 import useValidation from '../../hooks/useValidation';
 import { dispatchWithToast } from '../../common/utils/dispatchWithToast';
 import { clearListDragged, hideListPlaceholder, setListDragged, showListPlaceholder } from '../../store/board/reducer';
@@ -18,7 +23,9 @@ const Board = (): JSX.Element => {
   const { boardId } = useParams();
   const dispatch = useAppDispatch();
   const store = useAppStore();
-  const { boardSlot, listDragged, listPlaceholderBeforeId } = useAppSelector((state) => state.board);
+  const { boardSlot: rawBoardSlot, listDragged, listPlaceholderBeforeId } = useAppSelector((state) => state.board);
+  const parsedBoardId = boardId ? +boardId : 0;
+  const boardSlot = rawBoardSlot?.id === parsedBoardId ? rawBoardSlot : undefined;
   const [title, setTitle] = useState('');
   const [titleEdit, setTitleEdit] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState(boardSlot?.custom?.background || '');
@@ -31,11 +38,16 @@ const Board = (): JSX.Element => {
   const { errors, touched, setTouched } = useValidation(title);
   const escapeCancelledRef = useRef(false);
 
-  useEffect(() => {
-    if (boardId) {
-      dispatch(boardAction.getBoardById(+boardId));
-    }
-  }, [boardId, dispatch]);
+  const navigate = useNavigate();
+  useGetBoardByIdQuery(parsedBoardId, { skip: !boardId });
+
+  const [updateBoardById] = useUpdateBoardByIdMutation();
+  const [updateGroupLists] = useUpdateGroupListsMutation();
+
+  const handleLogout = (): void => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   useEffect(
     () => () => {
@@ -67,7 +79,7 @@ const Board = (): JSX.Element => {
       toast.warning('Назва дошки не оновлена');
     } else if (boardSlot && touched && boardSlot.title !== title.trim()) {
       await dispatchWithToast(
-        dispatch(boardAction.updateBoardById({ id: +(boardId || 0), data: { title: title.trim() } })).unwrap(),
+        updateBoardById({ id: +(boardId || 0), data: { title: title.trim() } }).unwrap(),
         'Updated',
         'Дошку оновлено успішно',
         'Дошку не оновлено'
@@ -81,9 +93,10 @@ const Board = (): JSX.Element => {
     clearTimeout(colorDebounceRef.current);
     colorDebounceRef.current = setTimeout(async () => {
       if (value !== boardSlot?.custom?.background) {
-        const boardUpdate: IBoardUpdate = { title: boardSlot?.title || '', custom: { background: value } };
+        const currentTitle = store.getState().board.boardSlot?.title || '';
+        const boardUpdate: IBoardUpdate = { title: currentTitle, custom: { background: value } };
         const success = await dispatchWithToast(
-          dispatch(boardAction.updateBoardById({ id: +(boardId || 0), data: boardUpdate })).unwrap(),
+          updateBoardById({ id: +(boardId || 0), data: boardUpdate }).unwrap(),
           'Updated',
           'Дошку оновлено успішно',
           'Дошку не оновлено'
@@ -150,7 +163,6 @@ const Board = (): JSX.Element => {
     ctx.translate(canvasWidth / 2, canvasHeight / 2);
     ctx.rotate((2 * Math.PI) / 180);
 
-    // List background with shadow — темна база + glassmorphism overlay
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
     ctx.shadowBlur = 16;
     ctx.shadowOffsetX = 4;
@@ -189,7 +201,6 @@ const Board = (): JSX.Element => {
     ctx.textBaseline = 'middle';
     ctx.fillText('+ Додати картку', btnX + 10, btnY + btnH / 2);
 
-    // Cards (stop before button area)
     const cards = listSlot.cardSlots
       .filter((slot) => slot.card && slot.view)
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -240,7 +251,6 @@ const Board = (): JSX.Element => {
       drawListDragImage(e, listSlot, element);
     }
 
-    // dispatch after drag image is captured — React re-render applies opacity
     dispatch(setListDragged({ listId: listSlot.id }));
   };
 
@@ -274,7 +284,6 @@ const Board = (): JSX.Element => {
         return clientX < rect.left + rect.width / 2;
       });
 
-      // No-op: would stay in the same position
       const isAdjacentToDragged =
         hoverIndex === draggedIndex ||
         hoverIndex === draggedIndex + 1 ||
@@ -313,7 +322,7 @@ const Board = (): JSX.Element => {
 
     dispatch(clearListDragged());
 
-    if (!draggedId || !boardSlot || targetBeforeId === undefined) return;
+    if (!draggedId || Number.isNaN(draggedId) || !boardSlot || targetBeforeId === undefined) return;
 
     const sortedLists = [...(boardSlot.lists || [])].sort((a, b) => a.position - b.position);
     const listsWithoutDragged = sortedLists.filter((l) => l.id !== draggedId);
@@ -340,11 +349,10 @@ const Board = (): JSX.Element => {
     if (data.length === 0) return;
 
     await dispatchWithToast(
-      dispatch(boardAction.updateGroupLists({ boardId: boardSlot.id, data })).unwrap(),
+      updateGroupLists({ boardId: boardSlot.id, data }).unwrap(),
       'Updated',
       'Список переміщено успішно',
-      'Список не переміщено',
-      () => dispatch(boardAction.getBoardById(boardSlot.id))
+      'Список не переміщено'
     );
   };
 
@@ -385,6 +393,9 @@ const Board = (): JSX.Element => {
             <div className={s.home}>
               <Link to="/">{'<-Додому'}</Link>
             </div>
+            <button className={s.logout} onClick={handleLogout} aria-label="Вийти" title="Вийти">
+              <LogoutIcon />
+            </button>
             <div className={s.color_picker_wrapper}>
               <input
                 type="color"

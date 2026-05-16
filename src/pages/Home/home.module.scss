@@ -6,6 +6,40 @@
   flex-direction: column;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 60px;
+  padding: 0 16px;
+}
+
+.logout {
+  position: absolute;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: $primary-color;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $primary-background-hover;
+  }
+
+  @include onSmallTablet {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 h1 {
   text-align: center;
   color: $primary-color;
@@ -48,7 +82,7 @@ h1 {
 
 .board_add {
   width: 180px;
-  height: 150px;
+  height: 130px;
   padding: 10px;
   border-radius: 16px;
   background: $primary-background;

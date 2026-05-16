@@ -38,12 +38,13 @@
   color: $primary-color;
   font-size: 16px;
   line-height: 1.5;
+  text-align: center;
 }
 
 .actions {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .btn_confirm {
